@@ -1,0 +1,16 @@
+{
+  "name": "kantu",
+  "version": "0.1.0",
+  "description": "An image viewer",
+  "main": "src/main.c",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "image",
+    "viewer",
+    "lcui"
+  ],
+  "author": "liu <lc-soft@live.cn>",
+  "license": "MIT"
+}
