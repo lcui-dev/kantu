@@ -12,5 +12,8 @@
     "lcui"
   ],
   "author": "liu <lc-soft@live.cn>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@lcui/react": "^0.3.0"
+  }
 }

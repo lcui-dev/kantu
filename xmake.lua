@@ -7,6 +7,10 @@ target("kantu")
     add_files("src/*.c")
     add_deps("lcui")
     add_defines("_CRT_SECURE_NO_WARNINGS")
+    set_rundir("dist")
+    if is_mode("debug") then
+        add_defines("DEBUG")
+    end
     if is_plat("windows") and not is_mode("debug") then
         add_rules("win.sdk.application")
     end
