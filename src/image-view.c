@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <ui_widgets.h>
+#include <ui_server.h>
 #include <platform.h>
+#include <LCUI/app.h>
 #include "utils.h"
 #include "image-view.tsx.h"
 #include "image-view.h"
@@ -69,6 +71,11 @@ void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
                 file = image_collector_next(&view->collector);
                 image_view_load_file(w, file);
                 free(file);
+                break;
+        case KEY_ESCAPE:
+                if (ui_widget_has_class(w, "maximized")) {
+                        image_view_restore(w);
+                }
                 break;
         default:
                 break;
@@ -148,17 +155,45 @@ void image_view_on_load_siblings(image_collector_t *c, void *arg)
         image_view_update(arg);
 }
 
+void image_view_on_mutation(ui_mutation_list_t *list,
+                            ui_mutation_observer_t *observer, void *arg)
+{
+        image_view_reset(arg);
+}
+
+void image_view_maximize(ui_widget_t *w)
+{
+        ui_widget_add_class(w, "maximized");
+        lcui_set_ui_display_mode(LCUI_DISPLAY_MODE_FULLSCREEN);
+}
+
+void image_view_restore(ui_widget_t *w)
+{
+        ui_widget_remove_class(w, "maximized");
+        lcui_set_ui_display_mode(LCUI_DISPLAY_MODE_DEFAULT);
+}
+
+void image_view_on_maximize(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_view_maximize(e->data);
+}
+
 static void image_view_init(ui_widget_t *w)
 {
         image_view_t *view =
             ui_widget_add_data(w, image_view_proto, sizeof(image_view_t));
         image_view_refs_t *refs = &view->base.refs;
+        ui_mutation_observer_t *observer;
+        ui_mutation_observer_init_t options = { .properties = true };
 
         image_view_react_init(w);
         image_controller_init(&view->controller);
         image_collector_init(&view->collector);
         view->collector.callback = image_view_on_load_siblings;
         view->collector.callback_arg = w;
+        observer = ui_mutation_observer_create(image_view_on_mutation, w);
+        ui_mutation_observer_observe(observer, w, options);
+        ui_widget_on(refs->maximize, "click", image_view_on_maximize, w);
         ui_widget_on(refs->prev, "click", image_view_on_prev, w);
         ui_widget_on(refs->next, "click", image_view_on_next, w);
         ui_widget_on(refs->content, "mouseup", image_view_on_mouseup, w);
@@ -182,14 +217,35 @@ static void image_view_destroy(ui_widget_t *w)
 
 void image_view_update(ui_widget_t *w)
 {
+        size_t len;
         char size_str[64];
         char percentage_str[8];
+        wchar_t title[80];
+        wchar_t truncated_name[64];
         image_view_t *view = ui_widget_get_data(w, image_view_proto);
         image_controller_t *c = &view->controller;
         bool image_valid = ui_image_valid(c->image);
 
+        len = mbstowcs(truncated_name, path_basename(c->image->path), 64);
+        if (len > 60) {
+                truncated_name[60] = '.';
+                truncated_name[61] = '.';
+                truncated_name[62] = '.';
+                truncated_name[63] = 0;
+        } else {
+                truncated_name[len] = 0;
+        }
         snprintf(size_str, 31, "%gpx %gpx", c->scale * c->image->data.width,
                  c->scale * c->image->data.height);
+        if (c->image->data.width > 0) {
+                swprintf(title, 80, L"%ls (%ux%u)", truncated_name,
+                         c->image->data.width, c->image->data.height);
+                title[79] = 0;
+        } else {
+                wcscpy(title, truncated_name);
+        }
+        ui_widget_set_title(ui_root(), title);
+
         ui_widget_set_style_string(view->base.refs.content, "background-size",
                                    size_str);
         ui_widget_set_style_unit_value(view->base.refs.content,

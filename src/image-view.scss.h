@@ -19,6 +19,9 @@ static const char *css_str_image_view = "\
   justify-content: flex-end;\
   background: rgb(51, 51, 51);\
 }\
+.image-view.maximized .toolbar {\
+  display: none;\
+}\
 .image-view .toolbar .icon {\
   font-size: 20px;\
   line-height: 20px;\

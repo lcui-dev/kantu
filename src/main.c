@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
                 image_view_load_file(view, argv[1]);
         } else {
                 ui_widget_append(ui_root(), ui_create_home());
+                ui_widget_set_title(ui_root(), L"kantu");
         }
 
         return lcui_app_run();

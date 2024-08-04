@@ -18,6 +18,12 @@
     background: rgb(51, 51, 51);
   }
 
+  &.maximized {
+    .toolbar {
+      display: none;
+    }
+  }
+
   .toolbar .icon {
     font-size: 20px;
     line-height: 20px;
