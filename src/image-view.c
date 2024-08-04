@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ui_widgets.h>
 #include <platform.h>
+#include "utils.h"
 #include "image-view.tsx.h"
 #include "image-view.h"
 #include "image-controller.h"
@@ -222,6 +223,13 @@ void image_view_update(ui_widget_t *w)
                 ui_widget_hide(view->base.refs.next);
         }
 
+        if (c->image->state != UI_IMAGE_STATE_COMPLETE ||
+            c->image->error == PD_OK) {
+                ui_widget_hide(view->base.refs.tip);
+        } else {
+                ui_widget_show(view->base.refs.tip);
+        }
+
         image_view_react_update(w);
 }
 
@@ -250,7 +258,32 @@ void image_view_reset(ui_widget_t *w)
 
 void image_view_on_image_event(ui_image_event_t *e)
 {
+        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+
+        switch (e->type) {
+        case UI_IMAGE_EVENT_PROGRESS:
+                ui_widget_set_style_unit_value(
+                    view->base.refs.progressbar, css_prop_width,
+                    e->image->progress, CSS_UNIT_PERCENT);
+                return;
+        case UI_IMAGE_EVENT_LOAD:
+                image_view_reset(e->data);
+                break;
+        case UI_IMAGE_EVENT_ERROR:
+                logger_error("load image error: %d", e->image->error);
+                image_view_update(e->data);
+                break;
+        default:
+                break;
+        }
+        ui_widget_hide(view->base.refs.progressbar);
+}
+
+void image_view_on_image_start_load(ui_image_event_t *e)
+{
         image_view_reset(e->data);
+        ui_image_off_progress(e->image, image_view_on_image_start_load,
+                              e->data);
 }
 
 void image_view_load_file(ui_widget_t *w, const char *file)
@@ -261,10 +294,21 @@ void image_view_load_file(ui_widget_t *w, const char *file)
 
         if (c->image) {
                 ui_image_off_load(c->image, image_view_on_image_event, w);
+                ui_image_off_error(c->image, image_view_on_image_event, w);
+                ui_image_off_progress(c->image, image_view_on_image_event, w);
+                ui_image_off_progress(c->image, image_view_on_image_start_load,
+                                      w);
         }
         image_controller_load_file(c, file);
         image_collector_load_file(&view->collector, file);
+        ui_text_set_content(view->base.refs.filename, path_basename(file));
         ui_image_on_load(c->image, image_view_on_image_event, w);
+        ui_image_on_error(c->image, image_view_on_image_event, w);
+        ui_image_on_progress(c->image, image_view_on_image_event, w);
+        ui_image_on_progress(c->image, image_view_on_image_start_load, w);
+        ui_widget_set_style_unit_value(view->base.refs.progressbar,
+                                       css_prop_width, 0, CSS_UNIT_PERCENT);
+        ui_widget_show(view->base.refs.progressbar);
 
         url = malloc(sizeof(char) * (strlen(file) + 10));
         sprintf(url, "url(%s)", file);

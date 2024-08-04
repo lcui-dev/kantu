@@ -97,4 +97,23 @@ static const char *css_str_image_view = "\
   left: 0;\
   justify-content: flex-start;\
 }\
+.image-view .progress {\
+  height: 2px;\
+}\
+.image-view .progress .bar {\
+  height: 100%;\
+  background: #3b82f6;\
+}\
+.image-view .tip {\
+  opacity: 0.8;\
+  display: flex;\
+  flex-direction: column;\
+}\
+.image-view .tip * {\
+  color: #fff;\
+  text-align: center;\
+}\
+.image-view .tip .icon {\
+  line-height: 1;\
+}\
 ";

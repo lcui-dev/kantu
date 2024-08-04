@@ -1,5 +1,6 @@
 import React, { Text, Widget } from "@lcui/react";
 import {
+  Image,
   ZoomOut,
   ZoomIn,
   ArrowMaximize,
@@ -14,7 +15,16 @@ import "./image-view.scss";
 export default function ImageView() {
   return (
     <Widget className="image-view">
-      <Widget $ref="content" className="content" />
+      <Widget className="progress">
+        <Widget $ref="progressbar" className="bar" />
+      </Widget>
+      <Widget $ref="content" className="content">
+        <Widget $ref="tip" className="tip">
+          <Image className="icon" fontSize={80} />
+          <Text $ref="filename" />
+          <Text>似乎不支持此文件格式。</Text>
+        </Widget>
+      </Widget>
       <Widget $ref="prev" className="switch-button prev">
         <TriangleLeftFilled />
       </Widget>
