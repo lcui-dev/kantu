@@ -4,10 +4,12 @@
 #include "image-view.tsx.h"
 #include "image-view.h"
 #include "image-controller.h"
+#include "image-collector.h"
 
 typedef struct {
         image_view_react_t base;
         image_controller_t controller;
+        image_collector_t collector;
 
         float mouse_x, mouse_y;
         float mouse_offset_x, mouse_offset_y;
@@ -46,6 +48,7 @@ void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
 {
         ui_widget_t *w = e->data;
         image_view_t *view = ui_widget_get_data(w, image_view_proto);
+        char *file;
 
         switch (e->key.code) {
         case KEY_EQUAL:
@@ -55,6 +58,16 @@ void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
         case KEY_MINUS:
                 image_controller_zoom_out(&view->controller);
                 image_view_update(w);
+                break;
+        case KEY_LEFT:
+                file = image_collector_prev(&view->collector);
+                image_view_load_file(w, file);
+                free(file);
+                break;
+        case KEY_RIGHT:
+                file = image_collector_next(&view->collector);
+                image_view_load_file(w, file);
+                free(file);
                 break;
         default:
                 break;
@@ -117,6 +130,23 @@ void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
         image_view_update(e->data);
 }
 
+void image_view_on_next(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_load_file(e->data, image_collector_next(&view->collector));
+}
+
+void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_load_file(e->data, image_collector_prev(&view->collector));
+}
+
+void image_view_on_load_siblings(image_collector_t *c, void *arg)
+{
+        image_view_update(arg);
+}
+
 static void image_view_init(ui_widget_t *w)
 {
         image_view_t *view =
@@ -125,6 +155,11 @@ static void image_view_init(ui_widget_t *w)
 
         image_view_react_init(w);
         image_controller_init(&view->controller);
+        image_collector_init(&view->collector);
+        view->collector.callback = image_view_on_load_siblings;
+        view->collector.callback_arg = w;
+        ui_widget_on(refs->prev, "click", image_view_on_prev, w);
+        ui_widget_on(refs->next, "click", image_view_on_next, w);
         ui_widget_on(refs->content, "mouseup", image_view_on_mouseup, w);
         ui_widget_on(refs->content, "mousedown", image_view_on_mousedown, w);
         ui_widget_on(refs->content, "mousemove", image_view_on_mousemove, w);
@@ -141,6 +176,7 @@ static void image_view_destroy(ui_widget_t *w)
         image_view_t *view = ui_widget_get_data(w, image_view_proto);
         image_view_react_destroy(w);
         image_controller_destroy(&view->controller);
+        image_collector_destroy(&view->collector);
 }
 
 void image_view_update(ui_widget_t *w)
@@ -174,6 +210,18 @@ void image_view_update(ui_widget_t *w)
                                !image_controller_can_zoom_to_fill(c));
         ui_widget_set_disabled(view->base.refs.original,
                                !image_valid || c->scale == 1.f);
+
+        if (image_collector_has_prev(&view->collector)) {
+                ui_widget_show(view->base.refs.prev);
+        } else {
+                ui_widget_hide(view->base.refs.prev);
+        }
+        if (image_collector_has_next(&view->collector)) {
+                ui_widget_show(view->base.refs.next);
+        } else {
+                ui_widget_hide(view->base.refs.next);
+        }
+
         image_view_react_update(w);
 }
 
@@ -215,6 +263,7 @@ void image_view_load_file(ui_widget_t *w, const char *file)
                 ui_image_off_load(c->image, image_view_on_image_event, w);
         }
         image_controller_load_file(c, file);
+        image_collector_load_file(&view->collector, file);
         ui_image_on_load(c->image, image_view_on_image_event, w);
 
         url = malloc(sizeof(char) * (strlen(file) + 10));
