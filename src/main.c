@@ -1,4 +1,4 @@
-﻿#include "main.h"
+#include "main.h"
 #include "utils.h"
 
 #ifdef _WIN32
@@ -19,7 +19,9 @@ int main(int argc, char *argv[])
         lcui_app_init();
 
         if (argc > 1) {
-                ui_widget_append(ui_root(), ui_create_image_view());
+                ui_widget_t *view = ui_create_image_view();
+                ui_widget_append(ui_root(), view);
+                image_view_load_file(view, argv[1]);
         } else {
                 ui_widget_append(ui_root(), ui_create_home());
         }
