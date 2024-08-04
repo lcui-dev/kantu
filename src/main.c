@@ -11,14 +11,18 @@
 int main(int argc, char *argv[])
 {
 #ifndef DEBUG
-    char *dirname = path_dirname(argv[0]);
-    chdir(dirname);
-    free(dirname);
+        char *dirname = path_dirname(argv[0]);
+        chdir(dirname);
+        free(dirname);
 #endif
 
-    lcui_app_init();
+        lcui_app_init();
 
-    ui_widget_append(ui_root(), ui_create_home());
+        if (argc > 1) {
+                ui_widget_append(ui_root(), ui_create_image_view());
+        } else {
+                ui_widget_append(ui_root(), ui_create_home());
+        }
 
-    return lcui_app_run();
+        return lcui_app_run();
 }
