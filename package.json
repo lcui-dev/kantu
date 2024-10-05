@@ -15,6 +15,11 @@
   "license": "MIT",
   "dependencies": {
     "@lcui/react": "^0.3.0",
-    "@lcui/react-icons": "^1.0.1"
+    "@lcui/react-icons": "^1.0.2"
+  },
+  "devDependencies": {
+    "@thedutchcoder/postcss-rem-to-px": "^0.0.2",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13"
   }
 }
