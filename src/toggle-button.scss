@@ -1,0 +1,19 @@
+.toggle-button {
+  display: flex;
+  justify-self: center;
+  align-items: center;
+
+  .fui-icon-filled {
+    display: none;;
+  }
+
+  &.checked {
+    .fui-icon-regular {
+      display: none;
+    }
+
+    .fui-icon-filled {
+      display: block;
+    }
+  }
+}

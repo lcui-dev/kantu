@@ -1,48 +1,55 @@
 #include <stdio.h>
 #include <ui_widgets.h>
 #include <ui_server.h>
-#include <platform.h>
+#include <ptk.h>
 #include <LCUI/app.h>
 #include "utils.h"
 #include "image-view.tsx.h"
 #include "image-view.h"
 #include "image-controller.h"
 #include "image-collector.h"
+#include "file-info-panel.h"
 
 typedef struct {
         image_view_react_t base;
         image_controller_t controller;
         image_collector_t collector;
+        file_info_t *file_info;
 
         float mouse_x, mouse_y;
         float mouse_offset_x, mouse_offset_y;
         bool dragging;
 } image_view_t;
 
+static image_view_t *file_info_panel_get(ui_widget_t *w)
+{
+        return ui_widget_get_data(w, image_view_proto);
+}
+
 void image_view_on_zoom_in(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_controller_zoom_in(&view->controller);
         image_view_update(e->data);
 }
 
 void image_view_on_zoom_out(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_controller_zoom_out(&view->controller);
         image_view_update(e->data);
 }
 
 void image_view_on_zoom_to_1(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_controller_set_scale(&view->controller, 1.0f);
         image_view_update(e->data);
 }
 
 void image_view_on_zoom_to_fill(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_controller_zoom_to_fill(&view->controller);
         image_view_update(e->data);
 }
@@ -50,7 +57,7 @@ void image_view_on_zoom_to_fill(ui_widget_t *w, ui_event_t *e, void *arg)
 void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
 {
         ui_widget_t *w = e->data;
-        image_view_t *view = ui_widget_get_data(w, image_view_proto);
+        image_view_t *view = file_info_panel_get(w);
         char *file;
 
         switch (e->key.code) {
@@ -85,7 +92,7 @@ void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
 void image_view_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         float offset_x, offset_y;
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
 
         ui_widget_get_offset(w, NULL, &offset_x, &offset_y);
         ui_widget_set_mouse_capture(w);
@@ -99,7 +106,7 @@ void image_view_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 void image_view_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         float offset_x, offset_y;
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
 
         ui_widget_get_offset(w, NULL, &offset_x, &offset_y);
         view->mouse_x = e->mouse.x - offset_x;
@@ -115,14 +122,14 @@ void image_view_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
 
 void image_view_on_mouseup(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         view->dragging = false;
         ui_widget_release_mouse_capture(w);
 }
 
 void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_controller_t *c = &view->controller;
         float scale = view->controller.scale;
         float center_x = (view->mouse_x - c->image_offset_x) / scale;
@@ -140,13 +147,13 @@ void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
 
 void image_view_on_next(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_view_load_file(e->data, image_collector_next(&view->collector));
 }
 
 void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
         image_view_load_file(e->data, image_collector_prev(&view->collector));
 }
 
@@ -155,10 +162,22 @@ void image_view_on_load_siblings(image_collector_t *c, void *arg)
         image_view_update(arg);
 }
 
+static void image_view_on_load_file(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_view_update(e->data);
+}
+
 void image_view_on_mutation(ui_mutation_list_t *list,
                             ui_mutation_observer_t *observer, void *arg)
 {
         image_view_reset(arg);
+}
+
+void image_view_open_file_info_panel(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_view_t *view = file_info_panel_get(e->data);
+
+        ui_widget_remove_class(view->base.refs.file_info_panel, "hidden");
 }
 
 void image_view_maximize(ui_widget_t *w)
@@ -183,14 +202,15 @@ static void image_view_init(ui_widget_t *w)
         image_view_t *view =
             ui_widget_add_data(w, image_view_proto, sizeof(image_view_t));
         image_view_refs_t *refs = &view->base.refs;
-        ui_mutation_observer_t *observer;
         ui_mutation_observer_init_t options = { .properties = true };
+        ui_mutation_observer_t *observer;
 
         image_view_react_init(w);
         image_controller_init(&view->controller);
         image_collector_init(&view->collector);
         view->collector.callback = image_view_on_load_siblings;
         view->collector.callback_arg = w;
+        view->file_info = NULL;
         observer = ui_mutation_observer_create(image_view_on_mutation, w);
         ui_mutation_observer_observe(observer, w, options);
         ui_widget_on(refs->maximize, "click", image_view_on_maximize, w);
@@ -202,14 +222,14 @@ static void image_view_init(ui_widget_t *w)
         ui_widget_on(refs->content, "mousewheel", image_view_on_mousewheel, w);
         ui_widget_on(refs->zoom_in, "click", image_view_on_zoom_in, w);
         ui_widget_on(refs->zoom_out, "click", image_view_on_zoom_out, w);
-        ui_widget_on(refs->original, "click", image_view_on_zoom_to_1, w);
-        ui_widget_on(refs->fill, "click", image_view_on_zoom_to_fill, w);
+        ui_widget_on(refs->file_info_panel, "load", image_view_on_load_file, w);
         ui_widget_on(ui_root(), "keydown", image_view_on_keydown, w);
+        image_view_update(w);
 }
 
 static void image_view_destroy(ui_widget_t *w)
 {
-        image_view_t *view = ui_widget_get_data(w, image_view_proto);
+        image_view_t *view = file_info_panel_get(w);
         image_view_react_destroy(w);
         image_controller_destroy(&view->controller);
         image_collector_destroy(&view->collector);
@@ -219,35 +239,41 @@ void image_view_update(ui_widget_t *w)
 {
         size_t len;
         char size_str[64];
-        char percentage_str[8];
+        char percentage_str[8] = "100%";
         wchar_t title[80];
-        wchar_t truncated_name[64];
-        image_view_t *view = ui_widget_get_data(w, image_view_proto);
+        image_view_t *view = file_info_panel_get(w);
         image_controller_t *c = &view->controller;
-        bool image_valid = ui_image_valid(c->image);
 
-        len = mbstowcs(truncated_name, path_basename(c->image->path), 64);
-        if (len > 60) {
-                truncated_name[60] = '.';
-                truncated_name[61] = '.';
-                truncated_name[62] = '.';
-                truncated_name[63] = 0;
-        } else {
-                truncated_name[len] = 0;
-        }
-        snprintf(size_str, 31, "%gpx %gpx", c->scale * c->image->data.width,
-                 c->scale * c->image->data.height);
-        if (c->image->data.width > 0) {
-                swprintf(title, 80, L"%ls (%ux%u)", truncated_name,
-                         c->image->data.width, c->image->data.height);
-                title[79] = 0;
-        } else {
-                wcscpy(title, truncated_name);
-        }
-        ui_widget_set_title(ui_root(), title);
+        if (ui_image_valid(c->image)) {
+                len = mbstowcs(title, path_basename(c->image->path), 64);
+                if (len > 60) {
+                        title[60] = '.';
+                        title[61] = '.';
+                        title[62] = '.';
+                        title[63] = 0;
+                } else {
+                        title[len] = 0;
+                }
+                ui_widget_set_title(ui_root(), title);
 
-        ui_widget_set_style_string(view->base.refs.content, "background-size",
-                                   size_str);
+                snprintf(size_str, 31, "%gpx %gpx",
+                         c->scale * c->image->data.width,
+                         c->scale * c->image->data.height);
+                ui_widget_set_style_string(view->base.refs.content,
+                                           "background-size", size_str);
+                snprintf(percentage_str, 7, "%d%%",
+                         (int)(view->controller.scale * 100));
+        }
+
+        if (view->file_info) {
+                ui_text_set_content(view->base.refs.file_size,
+                                    view->file_info->file_size);
+                ui_text_set_content(view->base.refs.image_size,
+                                    view->file_info->image_size);
+                logger_error("[image_view_update] image_size: %s\n",
+                             view->file_info->image_size);
+        }
+
         ui_widget_set_style_unit_value(view->base.refs.content,
                                        css_prop_background_position_x,
                                        c->image_offset_x, CSS_UNIT_PX);
@@ -255,18 +281,12 @@ void image_view_update(ui_widget_t *w)
                                        css_prop_background_position_y,
                                        c->image_offset_y, CSS_UNIT_PX);
 
-        snprintf(percentage_str, 7, "%d%%",
-                 image_valid ? (int)(view->controller.scale * 100) : 100);
         ui_text_set_content(view->base.refs.percentage, percentage_str);
 
         ui_widget_set_disabled(view->base.refs.zoom_in,
                                !image_controller_can_zoom_in(c));
         ui_widget_set_disabled(view->base.refs.zoom_out,
                                !image_controller_can_zoom_out(c));
-        ui_widget_set_disabled(view->base.refs.fill,
-                               !image_controller_can_zoom_to_fill(c));
-        ui_widget_set_disabled(view->base.refs.original,
-                               !image_valid || c->scale == 1.f);
 
         if (image_collector_has_prev(&view->collector)) {
                 ui_widget_show(view->base.refs.prev);
@@ -279,7 +299,7 @@ void image_view_update(ui_widget_t *w)
                 ui_widget_hide(view->base.refs.next);
         }
 
-        if (c->image->state != UI_IMAGE_STATE_COMPLETE ||
+        if (!c->image || c->image->state != UI_IMAGE_STATE_COMPLETE ||
             c->image->error == PD_OK) {
                 ui_widget_hide(view->base.refs.tip);
         } else {
@@ -303,7 +323,7 @@ void ui_register_image_view(void)
 
 void image_view_reset(ui_widget_t *w)
 {
-        image_view_t *view = ui_widget_get_data(w, image_view_proto);
+        image_view_t *view = file_info_panel_get(w);
         image_controller_t *c = &view->controller;
 
         c->viewport_width = view->base.refs.content->padding_box.width;
@@ -314,7 +334,7 @@ void image_view_reset(ui_widget_t *w)
 
 void image_view_on_image_event(ui_image_event_t *e)
 {
-        image_view_t *view = ui_widget_get_data(e->data, image_view_proto);
+        image_view_t *view = file_info_panel_get(e->data);
 
         switch (e->type) {
         case UI_IMAGE_EVENT_PROGRESS:
@@ -345,7 +365,7 @@ void image_view_on_image_start_load(ui_image_event_t *e)
 void image_view_load_file(ui_widget_t *w, const char *file)
 {
         char *url;
-        image_view_t *view = ui_widget_get_data(w, image_view_proto);
+        image_view_t *view = file_info_panel_get(w);
         image_controller_t *c = &view->controller;
 
         if (c->image) {
@@ -357,6 +377,8 @@ void image_view_load_file(ui_widget_t *w, const char *file)
         }
         image_controller_load_file(c, file);
         image_collector_load_file(&view->collector, file);
+        view->file_info =
+            file_info_panel_load_file(view->base.refs.file_info_panel, file);
         ui_text_set_content(view->base.refs.filename, path_basename(file));
         ui_image_on_load(c->image, image_view_on_image_event, w);
         ui_image_on_error(c->image, image_view_on_image_event, w);

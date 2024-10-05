@@ -1,3 +1,4 @@
+﻿#include <locale.h>
 #include "main.h"
 #include "utils.h"
 
@@ -18,10 +19,12 @@ int main(int argc, char *argv[])
 
         lcui_app_init();
 
-        if (argc > 1) {
+        // if (argc > 1) {
+        if (1) {
                 ui_widget_t *view = ui_create_image_view();
                 ui_widget_append(ui_root(), view);
-                image_view_load_file(view, argv[1]);
+                // image_view_load_file(view, argv[1]);
+                image_view_load_file(view, "G:\\code\\kantu-demo\\狗狗.jpg");
         } else {
                 ui_widget_append(ui_root(), ui_create_home());
                 ui_widget_set_title(ui_root(), L"kantu");

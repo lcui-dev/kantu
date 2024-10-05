@@ -1,50 +1,53 @@
 /** Generated from: image-view.scss */
 static const char *css_str_image_view = "\
-* {\
-  box-sizing: border-box;\
-}\
-\
-.image-view {\
-  width: 100%;\
-  height: 100%;\
-  display: flex;\
-  flex-direction: column;\
-  background: rgb(31, 31, 31);\
+.image-view text {\
+  color: #fff;\
 }\
 .image-view .toolbar {\
-  padding: 0 8px;\
   flex: none;\
   display: flex;\
   align-items: center;\
   justify-content: flex-end;\
   background: rgb(51, 51, 51);\
 }\
-.image-view.maximized .toolbar {\
-  display: none;\
-}\
 .image-view .toolbar .icon {\
   font-size: 20px;\
   line-height: 20px;\
 }\
-.image-view .toolbar text,\
 .image-view .toolbar .button {\
   color: #fff;\
 }\
-.image-view .content {\
-  flex: auto;\
-  display: flex;\
-  align-items: center;\
-  justify-content: center;\
+.image-view .toolbar .button,\
+.image-view .toolbar .icon {\
+  text-align: center;\
+}\
+.image-view .toolbar .fit-button .icon-fit-fill {\
+  display: none;\
+}\
+.image-view .toolbar .fit-button.active .icon-fit {\
+  display: none;\
+}\
+.image-view .toolbar .fit-button.active .icon-fit-fill {\
+  display: block;\
+}\
+.image-view .toolbar .file-info .icon {\
+  font-size: 18px;\
+  line-height: 18px;\
+}\
+.image-view.maximized .toolbar {\
+  display: none;\
 }\
 .image-view .percentage {\
   padding: 0 8px;\
   white-space: nowrap;\
 }\
 .image-view .button {\
+  display: flex;\
+  align-items: center;\
+  justify-content: center;\
   padding: 10px;\
   width: 40px;\
   height: 40px;\
-  text-align: center;\
   border-radius: 4px;\
   border: none;\
   background: transparent;\
