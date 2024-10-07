@@ -2,41 +2,30 @@
 #include <thread.h>
 
 typedef enum {
-        IMAGE_COLLECTOR_STATE_EXITED,
-        IMAGE_COLLECTOR_STATE_READY,
-        IMAGE_COLLECTOR_STATE_PENDING,
-        IMAGE_COLLECTOR_STATE_LOADING,
-        IMAGE_COLLECTOR_STATE_FINISHED,
-        IMAGE_COLLECTOR_STATE_ERROR,
-} image_collector_state_t;
+        IMAGE_COLLECTOR_EVENT_OPEN,
+        IMAGE_COLLECTOR_EVENT_FOUND,
+        IMAGE_COLLECTOR_EVENT_FINISHED,
+} image_collector_event_type_t;
 
-typedef struct image_collector image_collector_t;
+void image_collector_init(void);
 
-struct image_collector {
-        char *file;
-        image_collector_state_t state;
-        list_t files;
-        size_t index;
-        char *dirname;
-        thread_t tid;
-        thread_mutex_t mutex;
-        thread_cond_t cond;
-        void *callback_arg;
-        void (*callback)(image_collector_t *, void *);
-};
+void image_collector_destroy(void);
 
-void image_collector_init(image_collector_t *c);
+void image_collector_load_file(const char *file);
 
-void image_collector_destroy(image_collector_t *c);
+bool image_collector_has_next(void);
 
-void image_collector_load_file(image_collector_t *c, const char *file);
+bool image_collector_has_prev(void);
 
-bool image_collector_has_next(image_collector_t *c);
+const char *image_collector_get_file(void);
 
-bool image_collector_has_prev(image_collector_t *c);
+void image_collector_next(void);
 
-char *image_collector_get_file(image_collector_t *c);
+void image_collector_prev(void);
 
-char *image_collector_next(image_collector_t *c);
+size_t image_collector_get_index(void);
 
-char *image_collector_prev(image_collector_t *c);
+void image_collector_get_files(list_t *files, size_t index);
+
+void image_collector_listen(void (*callback)(image_collector_event_type_t, void *),
+                        void *data);

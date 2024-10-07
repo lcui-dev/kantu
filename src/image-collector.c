@@ -2,6 +2,36 @@
 #include "image-collector.h"
 #include "utils.h"
 
+typedef enum {
+        IMAGE_COLLECTOR_STATE_EXITED,
+        IMAGE_COLLECTOR_STATE_READY,
+        IMAGE_COLLECTOR_STATE_PENDING,
+        IMAGE_COLLECTOR_STATE_LOADING,
+        IMAGE_COLLECTOR_STATE_FINISHED,
+        IMAGE_COLLECTOR_STATE_ERROR,
+} image_collector_state_t;
+
+typedef struct {
+        void (*callback)(image_collector_event_type_t, void *);
+        void *data;
+} listener_t;
+
+typedef struct {
+        char *file;
+        image_collector_state_t state;
+        list_t files;
+        size_t index;
+        char *dirname;
+        thread_t tid;
+        thread_mutex_t mutex;
+        thread_cond_t cond;
+
+        /** list_t<listener_t*> */
+        list_t listeners;
+} image_collector_t;
+
+static image_collector_t image_collector;
+
 bool is_image_file(const char *path)
 {
         char *ext;
@@ -20,56 +50,80 @@ bool is_image_file(const char *path)
         return false;
 }
 
-void image_collector_thread(void *arg)
+void image_collector_notify(image_collector_event_type_t type)
+{
+        list_node_t *node;
+
+        for (list_each(node, &image_collector.listeners)) {
+                listener_t *listener = node->data;
+                listener->callback(type, listener->data);
+        }
+}
+
+void image_collector_listen(void (*callback)(image_collector_event_type_t,
+                                             void *),
+                            void *data)
+{
+        listener_t *listener = malloc(sizeof(listener_t));
+
+        listener->callback = callback;
+        listener->data = data;
+        list_append(&image_collector.listeners, listener);
+}
+
+void image_collector_thread(void *unused)
 {
         dir_t *dir;
         char *file;
         char *current_file = NULL;
         list_t files;
         dir_entry_t *entry;
-        image_collector_t *c = arg;
+        image_collector_t *c = &image_collector;
 
         dir = dir_create();
         list_create(&files);
-        while (c->state != IMAGE_COLLECTOR_STATE_EXITED) {
-                thread_mutex_lock(&c->mutex);
-                while (c->state != IMAGE_COLLECTOR_STATE_PENDING &&
-                       c->state != IMAGE_COLLECTOR_STATE_EXITED) {
-                        thread_cond_wait(&c->cond, &c->mutex);
+        while (image_collector.state != IMAGE_COLLECTOR_STATE_EXITED) {
+                thread_mutex_lock(&image_collector.mutex);
+                while (image_collector.state != IMAGE_COLLECTOR_STATE_PENDING &&
+                       image_collector.state != IMAGE_COLLECTOR_STATE_EXITED) {
+                        thread_cond_wait(&image_collector.cond,
+                                         &image_collector.mutex);
                 }
-                if (c->state == IMAGE_COLLECTOR_STATE_EXITED) {
-                        thread_mutex_unlock(&c->mutex);
+                if (image_collector.state == IMAGE_COLLECTOR_STATE_EXITED) {
+                        thread_mutex_unlock(&image_collector.mutex);
                         break;
                 }
-                if (dir_open_a(c->dirname, dir) != 0) {
-                        c->state = IMAGE_COLLECTOR_STATE_ERROR;
+                if (dir_open_a(image_collector.dirname, dir) != 0) {
+                        image_collector.state = IMAGE_COLLECTOR_STATE_ERROR;
                         logger_error(
                             "[image-collector] cannot open directory: %ls",
-                            c->dirname);
+                            image_collector.dirname);
                         continue;
                 }
-                c->index = 0;
-                c->state = IMAGE_COLLECTOR_STATE_LOADING;
+                image_collector.index = 0;
+                image_collector.state = IMAGE_COLLECTOR_STATE_LOADING;
                 if (current_file) {
                         free(current_file);
                 }
-                current_file = strdup2(path_basename(c->file));
-                thread_mutex_unlock(&c->mutex);
-                while (c->state != IMAGE_COLLECTOR_STATE_PENDING &&
-                       c->state != IMAGE_COLLECTOR_STATE_EXITED) {
+                current_file = strdup2(path_basename(image_collector.file));
+                thread_mutex_unlock(&image_collector.mutex);
+                while (image_collector.state != IMAGE_COLLECTOR_STATE_PENDING &&
+                       image_collector.state != IMAGE_COLLECTOR_STATE_EXITED) {
                         entry = dir_read_a(dir);
                         if (entry == NULL) {
-                                list_destroy(&c->files, free);
-                                list_concat(&c->files, &files);
-                                c->state = IMAGE_COLLECTOR_STATE_FINISHED;
-                                if (c->callback) {
-                                        c->callback(c, c->callback_arg);
-                                }
+                                list_destroy(&image_collector.files, free);
+                                list_concat(&image_collector.files, &files);
+                                image_collector.state =
+                                    IMAGE_COLLECTOR_STATE_FINISHED;
+                                image_collector_notify(
+                                    IMAGE_COLLECTOR_EVENT_FINISHED);
                                 break;
                         }
                         file = dir_get_file_name_a(entry);
                         if (strcmp(file, current_file) == 0) {
-                                c->index = files.length;
+                                image_collector.index = files.length;
+                                image_collector_notify(
+                                    IMAGE_COLLECTOR_EVENT_FOUND);
                         }
                         if (dir_entry_is_regular(entry) &&
                             is_image_file(file)) {
@@ -85,93 +139,133 @@ void image_collector_thread(void *arg)
         thread_exit(NULL);
 }
 
-void image_collector_init(image_collector_t *c)
+void image_collector_init(void)
 {
-        c->file = NULL;
-        c->callback = NULL;
-        c->callback_arg = NULL;
-        c->dirname = NULL;
-        c->state = IMAGE_COLLECTOR_STATE_READY;
-        list_create(&c->files);
-        thread_cond_init(&c->cond);
-        thread_mutex_init(&c->mutex);
-        if (thread_create(&c->tid, image_collector_thread, c) != 0) {
-                c->state = IMAGE_COLLECTOR_STATE_EXITED;
+        image_collector.file = NULL;
+        image_collector.dirname = NULL;
+        image_collector.state = IMAGE_COLLECTOR_STATE_READY;
+        list_create(&image_collector.files);
+        list_create(&image_collector.listeners);
+        thread_cond_init(&image_collector.cond);
+        thread_mutex_init(&image_collector.mutex);
+        if (thread_create(&image_collector.tid, image_collector_thread, NULL) !=
+            0) {
+                image_collector.state = IMAGE_COLLECTOR_STATE_EXITED;
         }
 }
 
-void image_collector_destroy(image_collector_t *c)
+void image_collector_destroy(void)
 {
-        thread_mutex_lock(&c->mutex);
-        c->state = IMAGE_COLLECTOR_STATE_EXITED;
-        thread_cond_signal(&c->cond);
-        thread_mutex_unlock(&c->mutex);
-        thread_join(c->tid, NULL);
-        if (c->file) {
-                free(c->file);
+        thread_mutex_lock(&image_collector.mutex);
+        image_collector.state = IMAGE_COLLECTOR_STATE_EXITED;
+        thread_cond_signal(&image_collector.cond);
+        thread_mutex_unlock(&image_collector.mutex);
+        thread_join(image_collector.tid, NULL);
+        if (image_collector.file) {
+                free(image_collector.file);
         }
-        if (c->dirname) {
-                free(c->dirname);
+        if (image_collector.dirname) {
+                free(image_collector.dirname);
         }
-        c->file = NULL;
-        c->dirname = NULL;
+        list_destroy(&image_collector.files, free);
+        list_destroy(&image_collector.listeners, free);
+        image_collector.file = NULL;
+        image_collector.dirname = NULL;
 }
 
-void image_collector_load_file(image_collector_t *c, const char *file)
+void image_collector_load_file(const char *file)
 {
+        size_t i = 0;
+        list_node_t *node;
         char *dirname = path_dirname(file);
 
-        thread_mutex_lock(&c->mutex);
-        if (c->file) {
-                free(c->file);
+        thread_mutex_lock(&image_collector.mutex);
+        if (image_collector.file) {
+                free(image_collector.file);
         }
-        c->file = strdup2(file);
-        if (c->dirname && strcmp(c->dirname, dirname) == 0) {
-                thread_mutex_unlock(&c->mutex);
+        image_collector.file = strdup2(file);
+        image_collector_notify(IMAGE_COLLECTOR_EVENT_OPEN);
+        if (!image_collector.dirname ||
+            strcmp(image_collector.dirname, dirname) != 0) {
+                if (image_collector.dirname) {
+                        free(image_collector.dirname);
+                }
+                image_collector.dirname = dirname;
+                image_collector.state = IMAGE_COLLECTOR_STATE_PENDING;
+                thread_cond_signal(&image_collector.cond);
+                thread_mutex_unlock(&image_collector.mutex);
                 return;
         }
-        if (c->dirname) {
-                free(c->dirname);
+        for (list_each(node, &image_collector.files)) {
+                if (strcmp(node->data, path_basename(file)) == 0) {
+                        image_collector.index = i;
+                        image_collector_notify(IMAGE_COLLECTOR_EVENT_FOUND);
+                        break;
+                }
+                i++;
         }
-        c->dirname = dirname;
-        c->state = IMAGE_COLLECTOR_STATE_PENDING;
-        thread_cond_signal(&c->cond);
-        thread_mutex_unlock(&c->mutex);
+        thread_mutex_unlock(&image_collector.mutex);
 }
 
-bool image_collector_has_next(image_collector_t *c)
+size_t image_collector_get_index(void)
 {
-        return c->state == IMAGE_COLLECTOR_STATE_FINISHED &&
-               c->index + 1 < c->files.length;
+        return image_collector.index;
 }
 
-bool image_collector_has_prev(image_collector_t *c)
+void image_collector_get_files(list_t *files, size_t index)
 {
-        return c->state == IMAGE_COLLECTOR_STATE_FINISHED && c->index > 0;
-}
+        list_node_t *node;
 
-char *image_collector_get_file(image_collector_t *c)
-{
-        const char *name = list_get(&c->files, c->index);
-
-        if (!name || !c->dirname) {
-                return c->file ? strdup2(c->file) : NULL;
+        thread_mutex_lock(&image_collector.mutex);
+        for (node = list_get_node(&image_collector.files, index); node;
+             node = node->next) {
+                list_append(files,
+                            path_join(image_collector.dirname, node->data));
         }
-        return path_join(c->dirname, name);
+        thread_mutex_unlock(&image_collector.mutex);
 }
 
-char *image_collector_next(image_collector_t *c)
+bool image_collector_has_next(void)
 {
-        if (image_collector_has_next(c)) {
-                c->index++;
-        }
-        return image_collector_get_file(c);
+        return image_collector.state == IMAGE_COLLECTOR_STATE_FINISHED &&
+               image_collector.index + 1 < image_collector.files.length;
 }
 
-char *image_collector_prev(image_collector_t *c)
+bool image_collector_has_prev(void)
 {
-        if (image_collector_has_prev(c)) {
-                c->index--;
+        return image_collector.state == IMAGE_COLLECTOR_STATE_FINISHED &&
+               image_collector.index > 0;
+}
+
+const char *image_collector_get_file(void)
+{
+        return image_collector.file;
+}
+
+static void image_collector_goto(size_t index)
+{
+        char *file;
+        char *name = list_get(&image_collector.files, index);
+
+        if (!name || !image_collector.dirname) {
+                return;
         }
-        return image_collector_get_file(c);
+        file = path_join(image_collector.dirname, name);
+        image_collector.index = index;
+        image_collector_load_file(file);
+        free(file);
+}
+
+void image_collector_next(void)
+{
+        if (image_collector_has_next()) {
+                image_collector_goto(image_collector.index + 1);
+        }
+}
+
+void image_collector_prev(void)
+{
+        if (image_collector_has_prev()) {
+                image_collector_goto(image_collector.index - 1);
+        }
 }

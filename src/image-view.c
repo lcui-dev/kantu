@@ -9,11 +9,12 @@
 #include "image-controller.h"
 #include "image-collector.h"
 #include "file-info-panel.h"
+#include "film-view.h"
+#include "toggle-button.h"
 
 typedef struct {
         image_view_react_t base;
         image_controller_t controller;
-        image_collector_t collector;
         file_info_t *file_info;
 
         float mouse_x, mouse_y;
@@ -26,39 +27,38 @@ static image_view_t *file_info_panel_get(ui_widget_t *w)
         return ui_widget_get_data(w, image_view_proto);
 }
 
-void image_view_on_zoom_in(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_zoom_in(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = file_info_panel_get(e->data);
         image_controller_zoom_in(&view->controller);
         image_view_update(e->data);
 }
 
-void image_view_on_zoom_out(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_zoom_out(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = file_info_panel_get(e->data);
         image_controller_zoom_out(&view->controller);
         image_view_update(e->data);
 }
 
-void image_view_on_zoom_to_1(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_zoom_to_1(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = file_info_panel_get(e->data);
         image_controller_set_scale(&view->controller, 1.0f);
         image_view_update(e->data);
 }
 
-void image_view_on_zoom_to_fill(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_zoom_to_fit(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = file_info_panel_get(e->data);
-        image_controller_zoom_to_fill(&view->controller);
+        image_controller_zoom_to_fit(&view->controller);
         image_view_update(e->data);
 }
 
-void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
+static void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
 {
         ui_widget_t *w = e->data;
         image_view_t *view = file_info_panel_get(w);
-        char *file;
 
         switch (e->key.code) {
         case KEY_EQUAL:
@@ -70,14 +70,10 @@ void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
                 image_view_update(w);
                 break;
         case KEY_LEFT:
-                file = image_collector_prev(&view->collector);
-                image_view_load_file(w, file);
-                free(file);
+                image_collector_prev();
                 break;
         case KEY_RIGHT:
-                file = image_collector_next(&view->collector);
-                image_view_load_file(w, file);
-                free(file);
+                image_collector_next();
                 break;
         case KEY_ESCAPE:
                 if (ui_widget_has_class(w, "maximized")) {
@@ -89,7 +85,7 @@ void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
         }
 }
 
-void image_view_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         float offset_x, offset_y;
         image_view_t *view = file_info_panel_get(e->data);
@@ -103,7 +99,7 @@ void image_view_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
         view->dragging = true;
 }
 
-void image_view_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         float offset_x, offset_y;
         image_view_t *view = file_info_panel_get(e->data);
@@ -120,14 +116,14 @@ void image_view_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
         }
 }
 
-void image_view_on_mouseup(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_mouseup(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = file_info_panel_get(e->data);
         view->dragging = false;
         ui_widget_release_mouse_capture(w);
 }
 
-void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = file_info_panel_get(e->data);
         image_controller_t *c = &view->controller;
@@ -145,24 +141,28 @@ void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
         image_view_update(e->data);
 }
 
-void image_view_on_next(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_prev_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = file_info_panel_get(e->data);
-        image_view_load_file(e->data, image_collector_next(&view->collector));
+        e->cancel_bubble = true;
 }
 
-void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_next_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_t *view = file_info_panel_get(e->data);
-        image_view_load_file(e->data, image_collector_prev(&view->collector));
+        e->cancel_bubble = true;
 }
 
-void image_view_on_load_siblings(image_collector_t *c, void *arg)
+static void image_view_on_next(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_view_update(arg);
+        image_collector_next();
 }
 
-static void image_view_on_load_file(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_collector_prev();
+}
+
+static void image_view_on_load_file_info(ui_widget_t *w, ui_event_t *e,
+                                         void *arg)
 {
         image_view_update(e->data);
 }
@@ -197,44 +197,6 @@ void image_view_on_maximize(ui_widget_t *w, ui_event_t *e, void *arg)
         image_view_maximize(e->data);
 }
 
-static void image_view_init(ui_widget_t *w)
-{
-        image_view_t *view =
-            ui_widget_add_data(w, image_view_proto, sizeof(image_view_t));
-        image_view_refs_t *refs = &view->base.refs;
-        ui_mutation_observer_init_t options = { .properties = true };
-        ui_mutation_observer_t *observer;
-
-        image_view_react_init(w);
-        image_controller_init(&view->controller);
-        image_collector_init(&view->collector);
-        view->collector.callback = image_view_on_load_siblings;
-        view->collector.callback_arg = w;
-        view->file_info = NULL;
-        observer = ui_mutation_observer_create(image_view_on_mutation, w);
-        ui_mutation_observer_observe(observer, w, options);
-        ui_widget_on(refs->maximize, "click", image_view_on_maximize, w);
-        ui_widget_on(refs->prev, "click", image_view_on_prev, w);
-        ui_widget_on(refs->next, "click", image_view_on_next, w);
-        ui_widget_on(refs->content, "mouseup", image_view_on_mouseup, w);
-        ui_widget_on(refs->content, "mousedown", image_view_on_mousedown, w);
-        ui_widget_on(refs->content, "mousemove", image_view_on_mousemove, w);
-        ui_widget_on(refs->content, "mousewheel", image_view_on_mousewheel, w);
-        ui_widget_on(refs->zoom_in, "click", image_view_on_zoom_in, w);
-        ui_widget_on(refs->zoom_out, "click", image_view_on_zoom_out, w);
-        ui_widget_on(refs->file_info_panel, "load", image_view_on_load_file, w);
-        ui_widget_on(ui_root(), "keydown", image_view_on_keydown, w);
-        image_view_update(w);
-}
-
-static void image_view_destroy(ui_widget_t *w)
-{
-        image_view_t *view = file_info_panel_get(w);
-        image_view_react_destroy(w);
-        image_controller_destroy(&view->controller);
-        image_collector_destroy(&view->collector);
-}
-
 void image_view_update(ui_widget_t *w)
 {
         size_t len;
@@ -244,6 +206,8 @@ void image_view_update(ui_widget_t *w)
         image_view_t *view = file_info_panel_get(w);
         image_controller_t *c = &view->controller;
 
+        logger_debug("[image-view] image valid: %s\n",
+                     ui_image_valid(c->image) ? "true" : "false");
         if (ui_image_valid(c->image)) {
                 len = mbstowcs(title, path_basename(c->image->path), 64);
                 if (len > 60) {
@@ -263,6 +227,10 @@ void image_view_update(ui_widget_t *w)
                                            "background-size", size_str);
                 snprintf(percentage_str, 7, "%d%%",
                          (int)(view->controller.scale * 100));
+                logger_debug("[image-view] background size: %s\n", size_str);
+                logger_debug(
+                    "[image-view] background image: %s\n",
+                    view->base.refs.content->computed_style.background_image);
         }
 
         if (view->file_info) {
@@ -270,10 +238,10 @@ void image_view_update(ui_widget_t *w)
                                     view->file_info->file_size);
                 ui_text_set_content(view->base.refs.image_size,
                                     view->file_info->image_size);
-                logger_error("[image_view_update] image_size: %s\n",
-                             view->file_info->image_size);
         }
 
+        logger_debug("[image-view] image offset: %g %g\n",
+                     c->image_offset_x, c->image_offset_y);
         ui_widget_set_style_unit_value(view->base.refs.content,
                                        css_prop_background_position_x,
                                        c->image_offset_x, CSS_UNIT_PX);
@@ -288,12 +256,12 @@ void image_view_update(ui_widget_t *w)
         ui_widget_set_disabled(view->base.refs.zoom_out,
                                !image_controller_can_zoom_out(c));
 
-        if (image_collector_has_prev(&view->collector)) {
+        if (image_collector_has_prev()) {
                 ui_widget_show(view->base.refs.prev);
         } else {
                 ui_widget_hide(view->base.refs.prev);
         }
-        if (image_collector_has_next(&view->collector)) {
+        if (image_collector_has_next()) {
                 ui_widget_show(view->base.refs.next);
         } else {
                 ui_widget_hide(view->base.refs.next);
@@ -306,19 +274,15 @@ void image_view_update(ui_widget_t *w)
                 ui_widget_show(view->base.refs.tip);
         }
 
+        if (image_controller_can_zoom_to_fit(c)) {
+                ui_widget_remove_class(view->base.refs.fit, "active");
+        } else {
+                ui_widget_add_class(view->base.refs.fit, "active");
+        }
+        toggle_button_set_checked(
+            view->base.refs.toggle_film_view,
+            ui_widget_is_visible(view->base.refs.film_view));
         image_view_react_update(w);
-}
-
-ui_widget_t *ui_create_image_view(void)
-{
-        return ui_create_widget_with_prototype(image_view_proto);
-}
-
-void ui_register_image_view(void)
-{
-        image_view_init_prototype();
-        image_view_proto->init = image_view_init;
-        image_view_proto->destroy = image_view_destroy;
 }
 
 void image_view_reset(ui_widget_t *w)
@@ -328,14 +292,15 @@ void image_view_reset(ui_widget_t *w)
 
         c->viewport_width = view->base.refs.content->padding_box.width;
         c->viewport_height = view->base.refs.content->padding_box.height;
-        image_controller_reset_scale(c);
+        image_controller_zoom_to_fit(c);
         image_view_update(w);
 }
 
-void image_view_on_image_event(ui_image_event_t *e)
+static void image_view_on_image_event(ui_image_event_t *e)
 {
         image_view_t *view = file_info_panel_get(e->data);
 
+        logger_debug("[image-view] on image event: %d\n", e->type);
         switch (e->type) {
         case UI_IMAGE_EVENT_PROGRESS:
                 ui_widget_set_style_unit_value(
@@ -355,16 +320,40 @@ void image_view_on_image_event(ui_image_event_t *e)
         ui_widget_hide(view->base.refs.progressbar);
 }
 
-void image_view_on_image_start_load(ui_image_event_t *e)
+static void image_view_on_image_start_load(ui_image_event_t *e)
 {
         image_view_reset(e->data);
         ui_image_off_progress(e->image, image_view_on_image_start_load,
                               e->data);
 }
 
-void image_view_load_file(ui_widget_t *w, const char *file)
+static void image_view_on_film_view_toggle(ui_widget_t *w, ui_event_t *e,
+                                           void *arg)
 {
-        char *url;
+        image_view_t *view = file_info_panel_get(e->data);
+
+        if (ui_widget_is_visible(view->base.refs.film_view)) {
+                film_view_hide(view->base.refs.film_view);
+        } else {
+                film_view_show(view->base.refs.film_view);
+        }
+        image_view_update(e->data);
+}
+
+static void image_view_on_fit(ui_widget_t *w, ui_event_t *e, void *arg)
+{
+        image_view_t *view = file_info_panel_get(e->data);
+
+        if (image_controller_can_zoom_to_fit(&view->controller)) {
+                image_controller_zoom_to_fit(&view->controller);
+        } else {
+                image_controller_set_scale(&view->controller, 1.0f);
+        }
+        image_view_update(e->data);
+}
+
+static void image_view_load_file(ui_widget_t *w, const char *file)
+{
         image_view_t *view = file_info_panel_get(w);
         image_controller_t *c = &view->controller;
 
@@ -376,7 +365,6 @@ void image_view_load_file(ui_widget_t *w, const char *file)
                                       w);
         }
         image_controller_load_file(c, file);
-        image_collector_load_file(&view->collector, file);
         view->file_info =
             file_info_panel_load_file(view->base.refs.file_info_panel, file);
         ui_text_set_content(view->base.refs.filename, path_basename(file));
@@ -387,10 +375,51 @@ void image_view_load_file(ui_widget_t *w, const char *file)
         ui_widget_set_style_unit_value(view->base.refs.progressbar,
                                        css_prop_width, 0, CSS_UNIT_PERCENT);
         ui_widget_show(view->base.refs.progressbar);
+        ui_widget_set_background_image_url(view->base.refs.content, file);
+        logger_debug("[image-view] %s\n", "load file");
+}
 
-        url = malloc(sizeof(char) * (strlen(file) + 10));
-        sprintf(url, "url(%s)", file);
-        ui_widget_set_style_string(view->base.refs.content, "background-image",
-                                   url);
-        free(url);
+void image_view_on_collector_event(image_collector_event_type_t type, void *arg)
+{
+        if (type == IMAGE_COLLECTOR_EVENT_OPEN) {
+                image_view_load_file(arg, image_collector_get_file());
+        }
+        image_view_update(arg);
+}
+
+static void image_view_init(ui_widget_t *w)
+{
+        image_view_t *view =
+            ui_widget_add_data(w, image_view_proto, sizeof(image_view_t));
+        image_view_refs_t *refs = &view->base.refs;
+        ui_mutation_observer_init_t options = { .properties = true };
+        ui_mutation_observer_t *observer;
+
+        view->file_info = NULL;
+        image_view_react_init(w);
+        image_controller_init(&view->controller);
+        image_collector_listen(image_view_on_collector_event, w);
+        observer = ui_mutation_observer_create(image_view_on_mutation, w);
+        ui_mutation_observer_observe(observer, w, options);
+        ui_widget_on(ui_root(), "keydown", image_view_on_keydown, w);
+        image_view_update(w);
+}
+
+static void image_view_destroy(ui_widget_t *w)
+{
+        image_view_t *view = file_info_panel_get(w);
+        image_view_react_destroy(w);
+        image_controller_destroy(&view->controller);
+}
+
+ui_widget_t *ui_create_image_view(void)
+{
+        return ui_create_widget_with_prototype(image_view_proto);
+}
+
+void ui_register_image_view(void)
+{
+        image_view_init_prototype();
+        image_view_proto->init = image_view_init;
+        image_view_proto->destroy = image_view_destroy;
 }

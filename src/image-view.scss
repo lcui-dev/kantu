@@ -3,57 +3,6 @@
     color: #fff;
   }
 
-  .toolbar {
-    flex: none;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    background: rgb(51, 51, 51);
-  
-    .icon {
-      font-size: 20px;
-      line-height: 20px;
-    }
-  
-    .button {
-      color: #fff;
-    }
-  
-    .button,
-    .icon {
-      text-align: center;
-    }
-  
-    .fit-button {
-      .icon-fit-fill {
-        display: none;
-      }
-  
-      &.active {
-        .icon-fit {
-          display: none;
-        }
-  
-        .icon-fit-fill {
-          display: block;
-        }
-      }
-    }
-  
-    .file-info {
-      .icon {
-        font-size: 18px;
-        line-height: 18px;
-      }
-    }
-  }
-  
-  &.maximized {
-    .toolbar {
-      display: none;
-    }
-  }
-  
   .percentage {
     padding: 0 8px;
     white-space: nowrap;
@@ -153,5 +102,56 @@
 
   .tip .icon {
     line-height: 1;
+  }
+}
+
+.toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: rgb(51, 51, 51);
+
+  .icon {
+    font-size: 20px;
+    line-height: 20px;
+  }
+
+  .button {
+    color: #fff;
+  }
+
+  .button,
+  .icon {
+    text-align: center;
+  }
+
+  .fit-button {
+    .icon-fit-fill {
+      display: none;
+    }
+
+    &.active {
+      .icon-fit {
+        display: none;
+      }
+
+      .icon-fit-fill {
+        display: block;
+      }
+    }
+  }
+
+  .file-info {
+    .icon {
+      font-size: 18px;
+      line-height: 18px;
+    }
+  }
+}
+
+.maximized {
+  .toolbar {
+    display: none;
   }
 }

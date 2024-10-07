@@ -36,26 +36,28 @@ static const unsigned char widget_text_13[] = {0xee, 0xba, 0x8e, 0};
 static const unsigned char widget_text_14[] = {0xef, 0x85, 0x9e, 0};
 
 typedef struct {
-        ui_widget_t *progressbar;
         ui_widget_t *content;
         ui_widget_t *tip;
-        ui_widget_t *ref_3;
+        ui_widget_t *ref_2;
         ui_widget_t *filename;
+        ui_widget_t *progressbar;
         ui_widget_t *prev;
         ui_widget_t *ref_6;
         ui_widget_t *next;
-        ui_widget_t *ref_8;
-        ui_widget_t *ref_9;
         ui_widget_t *ref_10;
-        ui_widget_t *ref_11;
-        ui_widget_t *ref_13;
+        ui_widget_t *film_view;
+        ui_widget_t *toggle_film_view;
+        ui_widget_t *ref_19;
+        ui_widget_t *ref_20;
+        ui_widget_t *ref_22;
+        ui_widget_t *ref_24;
         ui_widget_t *image_size;
-        ui_widget_t *ref_15;
+        ui_widget_t *ref_26;
         ui_widget_t *file_size;
         ui_widget_t *percentage;
         ui_widget_t *fit;
-        ui_widget_t *ref_19;
-        ui_widget_t *ref_20;
+        ui_widget_t *ref_30;
+        ui_widget_t *ref_31;
         ui_widget_t *zoom_out;
         ui_widget_t *slider;
         ui_widget_t *zoom_in;
@@ -81,30 +83,29 @@ static void image_view_init_prototype(void)
 
 static void image_view_load_template(ui_widget_t *parent, image_view_refs_t *refs)
 {
-        ui_widget_t *w[8];
+        ui_widget_t *w[7];
 
         ui_widget_add_class(parent, "image-view flex bg-[#1f1f1f] w-full h-full");
         w[0] = ui_create_widget(NULL);
         ui_widget_add_class(w[0], "flex h-full flex-auto flex-col");
-        w[1] = ui_create_widget(NULL);
-        ui_widget_add_class(w[1], "progress");
-        refs->progressbar = ui_create_widget(NULL);
-        ui_widget_add_class(refs->progressbar, "bar");
-        ui_widget_append(w[1], refs->progressbar);
         refs->content = ui_create_widget(NULL);
         ui_widget_add_class(refs->content, "flex-auto flex items-center justify-center");
         refs->tip = ui_create_widget(NULL);
         ui_widget_add_class(refs->tip, "tip");
-        refs->ref_3 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_3, "fui-icon-regular icon");
-        ui_widget_set_text(refs->ref_3, (const char*)widget_text_0);
+        refs->ref_2 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_2, "fui-icon-regular icon");
+        ui_widget_set_text(refs->ref_2, (const char*)widget_text_0);
         refs->filename = ui_create_widget("text");
-        w[2] = ui_create_widget("text");
-        ui_widget_set_text(w[2], (const char*)widget_text_1);
-        ui_widget_append(refs->tip, refs->ref_3);
+        w[1] = ui_create_widget("text");
+        ui_widget_set_text(w[1], (const char*)widget_text_1);
+        ui_widget_append(refs->tip, refs->ref_2);
         ui_widget_append(refs->tip, refs->filename);
-        ui_widget_append(refs->tip, w[2]);
-        ui_widget_append(refs->content, refs->tip);
+        ui_widget_append(refs->tip, w[1]);
+        w[2] = ui_create_widget(NULL);
+        ui_widget_add_class(w[2], "progress");
+        refs->progressbar = ui_create_widget(NULL);
+        ui_widget_add_class(refs->progressbar, "bar");
+        ui_widget_append(w[2], refs->progressbar);
         refs->prev = ui_create_widget(NULL);
         ui_widget_add_class(refs->prev, "switch-button prev");
         refs->ref_6 = ui_create_widget("text");
@@ -113,55 +114,60 @@ static void image_view_load_template(ui_widget_t *parent, image_view_refs_t *ref
         ui_widget_append(refs->prev, refs->ref_6);
         refs->next = ui_create_widget(NULL);
         ui_widget_add_class(refs->next, "switch-button next");
-        refs->ref_8 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_8, "fui-icon-filled");
-        ui_widget_set_text(refs->ref_8, (const char*)widget_text_3);
-        ui_widget_append(refs->next, refs->ref_8);
+        refs->ref_10 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_10, "fui-icon-filled");
+        ui_widget_set_text(refs->ref_10, (const char*)widget_text_3);
+        ui_widget_append(refs->next, refs->ref_10);
+        ui_widget_append(refs->content, refs->tip);
+        ui_widget_append(refs->content, w[2]);
+        ui_widget_append(refs->content, refs->prev);
+        ui_widget_append(refs->content, refs->next);
+        refs->film_view = ui_create_widget("film_view");
         w[3] = ui_create_widget(NULL);
         ui_widget_add_class(w[3], "toolbar");
-        w[4] = ui_create_widget("toggle_button");
-        ui_widget_add_class(w[4], "button");
-        refs->ref_9 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_9, "fui-icon-regular icon");
-        ui_widget_set_text(refs->ref_9, (const char*)widget_text_4);
-        refs->ref_10 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_10, "fui-icon-filled icon");
-        ui_widget_set_text(refs->ref_10, (const char*)widget_text_5);
-        ui_widget_append(w[4], refs->ref_9);
-        ui_widget_append(w[4], refs->ref_10);
+        refs->toggle_film_view = ui_create_widget("toggle_button");
+        ui_widget_add_class(refs->toggle_film_view, "button");
+        refs->ref_19 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_19, "fui-icon-regular icon");
+        ui_widget_set_text(refs->ref_19, (const char*)widget_text_4);
+        refs->ref_20 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_20, "fui-icon-filled icon");
+        ui_widget_set_text(refs->ref_20, (const char*)widget_text_5);
+        ui_widget_append(refs->toggle_film_view, refs->ref_19);
+        ui_widget_append(refs->toggle_film_view, refs->ref_20);
+        w[4] = ui_create_widget(NULL);
+        ui_widget_add_class(w[4], "divider");
+        refs->ref_22 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_22, "fui-icon-regular icon button mr-1");
+        ui_widget_set_text(refs->ref_22, (const char*)widget_text_6);
         w[5] = ui_create_widget(NULL);
-        ui_widget_add_class(w[5], "divider");
-        refs->ref_11 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_11, "fui-icon-regular icon button mr-1");
-        ui_widget_set_text(refs->ref_11, (const char*)widget_text_6);
-        w[6] = ui_create_widget(NULL);
-        ui_widget_add_class(w[6], "file-info mr-auto opacity-50 flex border-l border-l-white h-4 items-center pl-3");
-        refs->ref_13 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_13, "fui-icon-regular mr-2 text-lg");
-        ui_widget_set_text(refs->ref_13, (const char*)widget_text_7);
+        ui_widget_add_class(w[5], "file-info mr-auto opacity-50 flex border-l border-l-white h-4 items-center pl-3");
+        refs->ref_24 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_24, "fui-icon-regular mr-2 text-lg");
+        ui_widget_set_text(refs->ref_24, (const char*)widget_text_7);
         refs->image_size = ui_create_widget("text");
         ui_widget_add_class(refs->image_size, "mr-4");
-        refs->ref_15 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_15, "fui-icon-regular m-2");
-        ui_widget_set_text(refs->ref_15, (const char*)widget_text_8);
+        refs->ref_26 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_26, "fui-icon-regular m-2");
+        ui_widget_set_text(refs->ref_26, (const char*)widget_text_8);
         refs->file_size = ui_create_widget("text");
-        ui_widget_append(w[6], refs->ref_13);
-        ui_widget_append(w[6], refs->image_size);
-        ui_widget_append(w[6], refs->ref_15);
-        ui_widget_append(w[6], refs->file_size);
+        ui_widget_append(w[5], refs->ref_24);
+        ui_widget_append(w[5], refs->image_size);
+        ui_widget_append(w[5], refs->ref_26);
+        ui_widget_append(w[5], refs->file_size);
         refs->percentage = ui_create_widget("text");
         ui_widget_add_class(refs->percentage, "percentage");
         ui_widget_set_text(refs->percentage, (const char*)widget_text_9);
         refs->fit = ui_create_widget(NULL);
         ui_widget_add_class(refs->fit, "button fit-button");
-        refs->ref_19 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_19, "fui-icon-regular icon icon-fit");
-        ui_widget_set_text(refs->ref_19, (const char*)widget_text_10);
-        refs->ref_20 = ui_create_widget("text");
-        ui_widget_add_class(refs->ref_20, "fui-icon-filled icon icon-fit-fill");
-        ui_widget_set_text(refs->ref_20, (const char*)widget_text_11);
-        ui_widget_append(refs->fit, refs->ref_19);
-        ui_widget_append(refs->fit, refs->ref_20);
+        refs->ref_30 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_30, "fui-icon-regular icon icon-fit");
+        ui_widget_set_text(refs->ref_30, (const char*)widget_text_10);
+        refs->ref_31 = ui_create_widget("text");
+        ui_widget_add_class(refs->ref_31, "fui-icon-filled icon icon-fit-fill");
+        ui_widget_set_text(refs->ref_31, (const char*)widget_text_11);
+        ui_widget_append(refs->fit, refs->ref_30);
+        ui_widget_append(refs->fit, refs->ref_31);
         refs->zoom_out = ui_create_widget("text");
         ui_widget_add_class(refs->zoom_out, "fui-icon-regular icon button");
         ui_widget_set_text(refs->zoom_out, (const char*)widget_text_12);
@@ -169,26 +175,24 @@ static void image_view_load_template(ui_widget_t *parent, image_view_refs_t *ref
         refs->zoom_in = ui_create_widget("text");
         ui_widget_add_class(refs->zoom_in, "fui-icon-regular icon button");
         ui_widget_set_text(refs->zoom_in, (const char*)widget_text_13);
-        w[7] = ui_create_widget(NULL);
-        ui_widget_add_class(w[7], "divider");
+        w[6] = ui_create_widget(NULL);
+        ui_widget_add_class(w[6], "divider");
         refs->maximize = ui_create_widget("text");
         ui_widget_add_class(refs->maximize, "fui-icon-regular icon button");
         ui_widget_set_text(refs->maximize, (const char*)widget_text_14);
+        ui_widget_append(w[3], refs->toggle_film_view);
         ui_widget_append(w[3], w[4]);
+        ui_widget_append(w[3], refs->ref_22);
         ui_widget_append(w[3], w[5]);
-        ui_widget_append(w[3], refs->ref_11);
-        ui_widget_append(w[3], w[6]);
         ui_widget_append(w[3], refs->percentage);
         ui_widget_append(w[3], refs->fit);
         ui_widget_append(w[3], refs->zoom_out);
         ui_widget_append(w[3], refs->slider);
         ui_widget_append(w[3], refs->zoom_in);
-        ui_widget_append(w[3], w[7]);
+        ui_widget_append(w[3], w[6]);
         ui_widget_append(w[3], refs->maximize);
-        ui_widget_append(w[0], w[1]);
         ui_widget_append(w[0], refs->content);
-        ui_widget_append(w[0], refs->prev);
-        ui_widget_append(w[0], refs->next);
+        ui_widget_append(w[0], refs->film_view);
         ui_widget_append(w[0], w[3]);
         refs->file_info_panel = ui_create_widget("file_info_panel");
         ui_widget_add_class(refs->file_info_panel, "flex-none w-[360px] h-full");
@@ -199,17 +203,59 @@ static void image_view_load_template(ui_widget_t *parent, image_view_refs_t *ref
 static void image_view_react_update(ui_widget_t *w)
 {
         image_view_react_t *_that = ui_widget_get_data(w, image_view_proto);
-        ui_widget_set_style_string(_that->refs.ref_3, "font-size", "80px");
-        ui_widget_set_style_string(_that->refs.ref_13, "font-size", "14px");
-        ui_widget_set_style_string(_that->refs.ref_15, "font-size", "14px");
+        ui_widget_set_style_string(_that->refs.ref_2, "font-size", "80px");
+        ui_widget_set_style_string(_that->refs.ref_24, "font-size", "14px");
+        ui_widget_set_style_string(_that->refs.ref_26, "font-size", "14px");
 }
 
+static void image_view_on_prev_mousedown(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_next_mousedown(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_next(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_mouseup(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_film_view_toggle(ui_widget_t *w, ui_event_t *e, void *arg);
+
 static void image_view_open_file_info_panel(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_fit(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_zoom_out(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_zoom_in(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_maximize(ui_widget_t *w, ui_event_t *e, void *arg);
+
+static void image_view_on_load_file_info(ui_widget_t *w, ui_event_t *e, void *arg);
 
 static void image_view_react_init_events(ui_widget_t *w)
 {
         image_view_react_t *_that = ui_widget_get_data(w, image_view_proto);
-        ui_widget_on(_that->refs.ref_11, "click", image_view_open_file_info_panel, w);
+        ui_widget_on(_that->refs.prev, "mousedown", image_view_on_prev_mousedown, w);
+        ui_widget_on(_that->refs.prev, "click", image_view_on_prev, w);
+        ui_widget_on(_that->refs.next, "mousedown", image_view_on_next_mousedown, w);
+        ui_widget_on(_that->refs.next, "click", image_view_on_next, w);
+        ui_widget_on(_that->refs.content, "mouseup", image_view_on_mouseup, w);
+        ui_widget_on(_that->refs.content, "mousedown", image_view_on_mousedown, w);
+        ui_widget_on(_that->refs.content, "mousewheel", image_view_on_mousewheel, w);
+        ui_widget_on(_that->refs.content, "mousemove", image_view_on_mousemove, w);
+        ui_widget_on(_that->refs.toggle_film_view, "click", image_view_on_film_view_toggle, w);
+        ui_widget_on(_that->refs.ref_22, "click", image_view_open_file_info_panel, w);
+        ui_widget_on(_that->refs.fit, "click", image_view_on_fit, w);
+        ui_widget_on(_that->refs.zoom_out, "click", image_view_on_zoom_out, w);
+        ui_widget_on(_that->refs.zoom_in, "click", image_view_on_zoom_in, w);
+        ui_widget_on(_that->refs.maximize, "click", image_view_on_maximize, w);
+        ui_widget_on(_that->refs.file_info_panel, "load", image_view_on_load_file_info, w);
 }
 
 static void image_view_react_init(ui_widget_t *w)

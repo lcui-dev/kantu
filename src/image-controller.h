@@ -16,22 +16,20 @@ void image_controller_destroy(image_controller_t *c);
 void image_controller_set_position(image_controller_t *c, float image_offset_x,
                                    float image_offset_y);
 
-float image_controller_compute_zoom_to_fill(image_controller_t *c);
+float image_controller_compute_zoom_to_fit(image_controller_t *c);
 
 void image_controller_set_scale(image_controller_t *c, float scale);
-
-void image_controller_reset_scale(image_controller_t *c);
 
 void image_controller_zoom_in(image_controller_t *c);
 
 void image_controller_zoom_out(image_controller_t *c);
 
-void image_controller_zoom_to_fill(image_controller_t *c);
+void image_controller_zoom_to_fit(image_controller_t *c);
 
 bool image_controller_can_zoom_in(image_controller_t *c);
 
 bool image_controller_can_zoom_out(image_controller_t *c);
 
-bool image_controller_can_zoom_to_fill(image_controller_t *c);
+bool image_controller_can_zoom_to_fit(image_controller_t *c);
 
 void image_controller_load_file(image_controller_t *c, const char *file);
