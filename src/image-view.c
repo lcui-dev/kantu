@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <ui_widgets.h>
 #include <ui_server.h>
-#include <ptk.h>
 #include <LCUI/app.h>
 #include "utils.h"
 #include "image-view.tsx.h"

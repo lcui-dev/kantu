@@ -15,7 +15,7 @@ void image_controller_destroy(image_controller_t *c);
 void image_controller_set_position(image_controller_t *c, float image_offset_x,
                                    float image_offset_y);
 
-float image_controller_compute_zoom_to_fit(image_controller_t *c);
+float image_controller_get_fit_scale(image_controller_t *c);
 
 void image_controller_set_scale(image_controller_t *c, float scale);
 
