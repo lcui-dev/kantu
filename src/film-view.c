@@ -140,18 +140,12 @@ ui_widget_t *ui_create_film_view(void)
         return ui_create_widget_with_prototype(film_view_proto);
 }
 
-void on_timer(void *arg)
-{
-        ui_print_tree(arg);
-}
-
 void film_view_show(ui_widget_t *w)
 {
         film_view_t *view = film_view_get(w);
         ui_widget_remove_class(w, "hidden");
         if (!view->timer && view->state != FILM_VIEW_STATE_FINISHED) {
                 view->timer = ptk_set_interval(500, film_view_load_images, w);
-                ptk_set_timeout(2000, on_timer, w);
         }
 }
 

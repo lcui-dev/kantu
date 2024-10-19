@@ -96,7 +96,7 @@ export default function ImageView() {
             className="icon button"
             onClick="image_view_on_zoom_out"
           />
-          <Slider $ref="slider" />
+          <Slider $ref="slider" className="w-[200px]" onChange="image_view_on_slider_change" />
           <ZoomIn
             $ref="zoom_in"
             className="icon button"

@@ -9,8 +9,14 @@ static const char *css_str_global = "\
 .top-4 {\
   top: 16px;\
 }\
+.top-\\[50\\%\\] {\
+  top: 50%;\
+}\
 .m-2 {\
   margin: 8px;\
+}\
+.-mt-\\[9px\\] {\
+  margin-top: -9px;\
 }\
 .mb-1 {\
   margin-bottom: 4px;\
@@ -42,8 +48,23 @@ static const char *css_str_global = "\
 .h-4 {\
   height: 16px;\
 }\
+.h-\\[18px\\] {\
+  height: 18px;\
+}\
+.h-\\[40px\\] {\
+  height: 40px;\
+}\
+.h-\\[4px\\] {\
+  height: 4px;\
+}\
 .h-full {\
   height: 100%;\
+}\
+.w-\\[18px\\] {\
+  width: 18px;\
+}\
+.w-\\[200px\\] {\
+  width: 200px;\
 }\
 .w-\\[360px\\] {\
   width: 360px;\
@@ -66,15 +87,27 @@ static const char *css_str_global = "\
 .justify-center {\
   justify-content: center;\
 }\
+.rounded-\\[4px\\] {\
+  border-radius: 4px;\
+}\
+.rounded-\\[9px\\] {\
+  border-radius: 9px;\
+}\
 .rounded-l {\
   border-top-left-radius: 4px;\
   border-bottom-left-radius: 4px;\
+}\
+.border-\\[4px\\] {\
+  border-width: 4px;\
 }\
 .border-l {\
   border-left-width: 1px;\
 }\
 .border-t {\
   border-top-width: 1px;\
+}\
+.border-slate-600 {\
+  border-color: #475569;\
 }\
 .border-l-black {\
   border-left-color: #000;\
@@ -85,11 +118,18 @@ static const char *css_str_global = "\
 .bg-\\[\\#1f1f1f\\] {\
   background-color: #1f1f1f;\
 }\
-.bg-blue-500 {\
-  background-color: #3b82f6;\
+.bg-sky-500 {\
+  background-color: #0ea5e9;\
+}\
+.bg-slate-500 {\
+  background-color: #64748b;\
 }\
 .p-4 {\
   padding: 16px;\
+}\
+.px-\\[9px\\] {\
+  padding-left: 9px;\
+  padding-right: 9px;\
 }\
 .pl-3 {\
   padding-left: 12px;\
@@ -119,6 +159,9 @@ static const char *css_str_global = "\
 }\
 * {\
   box-sizing: border-box;\
+}\
+.hover\\:border-\\[3px\\]:hover {\
+  border-width: 3px;\
 }\
 .hover\\:text-sky-700:hover {\
   color: #0369a1;\

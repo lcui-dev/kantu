@@ -2,7 +2,6 @@
 
 typedef struct image_controller {
         float scale;
-        float min_scale;
         float viewport_width, viewport_height;
         float viewport_center_x, viewport_center_y;
         float image_offset_x, image_offset_y;

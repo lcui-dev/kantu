@@ -1,12 +1,12 @@
 #include "image-controller.h"
 
-#define SCALE_MAX 10.f
+#define SCALE_MIN 0.1f
+#define SCALE_MAX 8.0f
 #define SCALE_STEP 0.2f
 
 void image_controller_init(image_controller_t *c)
 {
         c->scale = 1.f;
-        c->min_scale = 1.f;
         c->image = NULL;
         c->image_offset_x = 0;
         c->image_offset_y = 0;
@@ -68,8 +68,11 @@ float image_controller_compute_zoom_to_fit(image_controller_t *c)
 
 void image_controller_set_scale(image_controller_t *c, float scale)
 {
-        if (scale < c->min_scale) {
-                scale = c->min_scale;
+        float fit_scale = image_controller_compute_zoom_to_fit(c);
+        if (scale < fit_scale) {
+                scale = fit_scale;
+        } else if (scale < SCALE_MIN) {
+                scale = SCALE_MIN;
         }
         if (scale > SCALE_MAX) {
                 scale = SCALE_MAX;
@@ -92,8 +95,7 @@ void image_controller_zoom_out(image_controller_t *c)
 
 void image_controller_zoom_to_fit(image_controller_t *c)
 {
-        c->min_scale = image_controller_compute_zoom_to_fit(c);
-        c->scale = c->min_scale;
+        c->scale = image_controller_compute_zoom_to_fit(c);
         image_controller_set_position(c, 0, 0);
 }
 
@@ -104,7 +106,8 @@ bool image_controller_can_zoom_in(image_controller_t *c)
 
 bool image_controller_can_zoom_out(image_controller_t *c)
 {
-        return ui_image_valid(c->image) && c->scale > c->min_scale;
+        return ui_image_valid(c->image) &&
+               c->scale > image_controller_compute_zoom_to_fit(c);
 }
 
 bool image_controller_can_zoom_to_fit(image_controller_t *c)

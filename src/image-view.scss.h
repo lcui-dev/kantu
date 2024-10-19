@@ -17,6 +17,7 @@ static const char *css_str_image_view = "\
   border-radius: 4px;\
   border: none;\
   background: transparent;\
+  flex: 0 0 auto;\
 }\
 .image-view .button:hover {\
   background: rgba(255, 255, 255, 0.1);\
@@ -93,8 +94,10 @@ static const char *css_str_image_view = "\
   flex: none;\
   display: flex;\
   align-items: center;\
-  justify-content: flex-end;\
   background: rgb(51, 51, 51);\
+}\
+.toolbar * {\
+  flex: 0 0 none;\
 }\
 .toolbar .icon {\
   font-size: 20px;\
@@ -115,6 +118,9 @@ static const char *css_str_image_view = "\
 }\
 .toolbar .fit-button.active .icon-fit-fill {\
   display: block;\
+}\
+.toolbar .file-info {\
+  flex: 0 0 auto;\
 }\
 .toolbar .file-info .icon {\
   font-size: 18px;\
