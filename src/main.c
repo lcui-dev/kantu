@@ -1,4 +1,4 @@
-﻿#include <locale.h>
+﻿
 #include "main.h"
 #include "utils.h"
 #include "image-collector.h"

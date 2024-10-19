@@ -89,7 +89,7 @@ static void image_view_load_template(ui_widget_t *parent, image_view_refs_t *ref
         w[0] = ui_create_widget(NULL);
         ui_widget_add_class(w[0], "flex h-full flex-auto flex-col");
         refs->content = ui_create_widget(NULL);
-        ui_widget_add_class(refs->content, "image-view-content flex-auto flex items-center justify-center");
+        ui_widget_add_class(refs->content, "flex-auto flex items-center justify-center");
         refs->tip = ui_create_widget(NULL);
         ui_widget_add_class(refs->tip, "tip");
         refs->ref_2 = ui_create_widget("text");
@@ -239,8 +239,6 @@ static void image_view_on_zoom_in(ui_widget_t *w, ui_event_t *e, void *arg);
 
 static void image_view_on_maximize(ui_widget_t *w, ui_event_t *e, void *arg);
 
-static void image_view_on_load_file_info(ui_widget_t *w, ui_event_t *e, void *arg);
-
 static void image_view_react_init_events(ui_widget_t *w)
 {
         image_view_react_t *_that = ui_widget_get_data(w, image_view_proto);
@@ -259,7 +257,6 @@ static void image_view_react_init_events(ui_widget_t *w)
         ui_widget_on(_that->refs.slider, "change", image_view_on_slider_change, w);
         ui_widget_on(_that->refs.zoom_in, "click", image_view_on_zoom_in, w);
         ui_widget_on(_that->refs.maximize, "click", image_view_on_maximize, w);
-        ui_widget_on(_that->refs.file_info_panel, "load", image_view_on_load_file_info, w);
 }
 
 static void image_view_react_init(ui_widget_t *w)

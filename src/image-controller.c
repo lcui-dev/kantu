@@ -69,10 +69,10 @@ float image_controller_compute_zoom_to_fit(image_controller_t *c)
 void image_controller_set_scale(image_controller_t *c, float scale)
 {
         float fit_scale = image_controller_compute_zoom_to_fit(c);
-        if (scale < fit_scale) {
-                scale = fit_scale;
-        } else if (scale < SCALE_MIN) {
-                scale = SCALE_MIN;
+        float min_scale = fit_scale < SCALE_MIN ? fit_scale : SCALE_MIN;
+
+        if (scale < min_scale) {
+                scale = min_scale;
         }
         if (scale > SCALE_MAX) {
                 scale = SCALE_MAX;

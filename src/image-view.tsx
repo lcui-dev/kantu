@@ -113,7 +113,6 @@ export default function ImageView() {
       <FileInfoPanel
         $ref="file_info_panel"
         className="flex-none w-[360px] h-full"
-        onLoad="image_view_on_load_file_info"
       />
     </Widget>
   );

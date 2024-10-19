@@ -12,11 +12,12 @@
 #include "film-view.h"
 #include "slider.h"
 #include "toggle-button.h"
+#include "utils.h"
 
 typedef struct {
         image_view_react_t base;
         image_controller_t controller;
-        file_info_t *file_info;
+        file_info_reader_t *reader;
 
         float mouse_x, mouse_y;
         float mouse_offset_x, mouse_offset_y;
@@ -162,10 +163,9 @@ static void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
         image_collector_prev();
 }
 
-static void image_view_on_load_file_info(ui_widget_t *w, ui_event_t *e,
-                                         void *arg)
+static void image_view_on_load_file_info(file_info_t *info, void *arg)
 {
-        image_view_update(e->data);
+        image_view_update(arg);
 }
 
 void image_view_on_mutation(ui_mutation_list_t *list,
@@ -206,6 +206,7 @@ void image_view_update(ui_widget_t *w)
         wchar_t title[80];
         image_view_t *view = image_view_get(w);
         image_controller_t *c = &view->controller;
+        file_info_t *info = file_info_reader_get_info(view->reader);
 
         logger_debug("[image-view] image valid: %s\n",
                      ui_image_valid(c->image) ? "true" : "false");
@@ -237,13 +238,11 @@ void image_view_update(ui_widget_t *w)
                 slider_set_value(view->base.refs.slider, 100.0);
         }
 
-        if (view->file_info) {
                 ui_text_set_content(view->base.refs.file_size,
-                                    view->file_info->file_size);
+                                    info->file_size);
                 ui_text_set_content(view->base.refs.image_size,
-                                    view->file_info->image_size);
-        }
-
+                                    info->image_size);
+        
         logger_debug("[image-view] image offset: %g %g\n",
                      c->image_offset_x, c->image_offset_y);
         ui_widget_set_style_unit_value(view->base.refs.content,
@@ -286,6 +285,7 @@ void image_view_update(ui_widget_t *w)
         toggle_button_set_checked(
             view->base.refs.toggle_film_view,
             ui_widget_is_visible(view->base.refs.film_view));
+        file_info_panel_set_info(view->base.refs.file_info_panel, info);
         image_view_react_update(w);
 }
 
@@ -369,8 +369,7 @@ static void image_view_load_file(ui_widget_t *w, const char *file)
                                       w);
         }
         image_controller_load_file(c, file);
-        view->file_info =
-            file_info_panel_load_file(view->base.refs.file_info_panel, file);
+        file_info_reader_load_file(view->reader, file);
         ui_text_set_content(view->base.refs.filename, path_basename(file));
         ui_image_on_load(c->image, image_view_on_image_event, w);
         ui_image_on_error(c->image, image_view_on_image_event, w);
@@ -406,7 +405,7 @@ static void image_view_init(ui_widget_t *w)
         ui_mutation_observer_init_t options = { .properties = true };
         ui_mutation_observer_t *observer;
 
-        view->file_info = NULL;
+        view->reader = file_info_reader_create(image_view_on_load_file_info, w);
         image_view_react_init(w);
         image_controller_init(&view->controller);
         image_collector_listen(image_view_on_collector_event, w);
