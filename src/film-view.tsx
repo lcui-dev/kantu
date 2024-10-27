@@ -1,12 +1,17 @@
-import React, { Scrollbar, Widget, WidgetProps } from "@lcui/react";
+import React, {
+  ScrollArea,
+  ScrollAreaContent,
+  Scrollbar,
+  WidgetProps,
+} from "@lcui/react";
 import "./film-view.scss";
 
 export default function FilmView(props: WidgetProps) {
   return (
-    <Widget className="film-view hidden" {...props}>
-      <Widget $ref="content" id="filmViewContent" className="film-view-content" />
-      <Scrollbar direction="horizontal" target="filmViewContent" />
-    </Widget>
+    <ScrollArea className="film-view hidden" {...props}>
+      <ScrollAreaContent $ref="content" className="film-view-content" />
+      <Scrollbar orientation="horizontal" />
+    </ScrollArea>
   );
 }
 

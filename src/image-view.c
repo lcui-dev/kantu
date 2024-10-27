@@ -6,7 +6,6 @@
 #include "image-view.tsx.h"
 #include "image-view.h"
 #include "image-controller.h"
-#include "image-collector.h"
 #include "file-info-panel.h"
 #include "film-view.h"
 #include "slider.h"
@@ -16,6 +15,7 @@
 typedef struct {
         image_view_react_t base;
         image_controller_t controller;
+        image_collector_t *collector;
         file_info_reader_t *reader;
 
         float mouse_x, mouse_y;
@@ -71,10 +71,10 @@ static void image_view_on_keydown(ui_widget_t *root, ui_event_t *e, void *arg)
                 image_view_update(w);
                 break;
         case KEY_LEFT:
-                image_collector_prev();
+                image_collector_prev(view->collector);
                 break;
         case KEY_RIGHT:
-                image_collector_next();
+                image_collector_next(view->collector);
                 break;
         case KEY_ESCAPE:
                 if (ui_widget_has_class(w, "maximized")) {
@@ -154,12 +154,14 @@ static void image_view_on_next_mousedown(ui_widget_t *w, ui_event_t *e, void *ar
 
 static void image_view_on_next(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_collector_next();
+        image_view_t *view = image_view_get(e->data);
+        image_collector_next(view->collector);
 }
 
 static void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        image_collector_prev();
+        image_view_t *view = image_view_get(e->data);
+        image_collector_prev(view->collector);
 }
 
 static void image_view_on_load_file_info(file_info_t *info, void *arg)
@@ -258,12 +260,12 @@ void image_view_update(ui_widget_t *w)
         ui_widget_set_disabled(view->base.refs.zoom_out,
                                !image_controller_can_zoom_out(c));
 
-        if (image_collector_has_prev()) {
+        if (image_collector_has_prev(view->collector)) {
                 ui_widget_show(view->base.refs.prev);
         } else {
                 ui_widget_hide(view->base.refs.prev);
         }
-        if (image_collector_has_next()) {
+        if (image_collector_has_next(view->collector)) {
                 ui_widget_show(view->base.refs.next);
         } else {
                 ui_widget_hide(view->base.refs.next);
@@ -355,7 +357,7 @@ static void image_view_on_fit(ui_widget_t *w, ui_event_t *e, void *arg)
         image_view_update(e->data);
 }
 
-static void image_view_load_file(ui_widget_t *w, const char *file)
+static void image_view_on_load_file(ui_widget_t *w, const char *file)
 {
         image_view_t *view = image_view_get(w);
         image_controller_t *c = &view->controller;
@@ -381,12 +383,19 @@ static void image_view_load_file(ui_widget_t *w, const char *file)
         logger_debug("[image-view] %s\n", "load file");
 }
 
-void image_view_on_collector_event(image_collector_event_type_t type, void *arg)
+void image_view_on_collector_event(image_collector_t *c, image_collector_event_type_t type, void *arg)
 {
         if (type == IMAGE_COLLECTOR_EVENT_OPEN) {
-                image_view_load_file(arg, image_collector_get_file());
+                image_view_on_load_file(arg, image_collector_get_file(c));
         }
         image_view_update(arg);
+}
+
+void image_view_load_file(ui_widget_t *w, const char *file)
+{
+        image_view_t *view = image_view_get(w);
+
+        image_collector_load_file(view->collector, file);
 }
 
 void image_view_on_slider_change(ui_widget_t *w, ui_event_t *e, void *arg)
@@ -398,19 +407,20 @@ void image_view_on_slider_change(ui_widget_t *w, ui_event_t *e, void *arg)
 
 static void image_view_init(ui_widget_t *w)
 {
-        image_view_t *view =
-            ui_widget_add_data(w, image_view_proto, sizeof(image_view_t));
+        image_view_t *view = UI_WDIGET_ADD_DATA(w, image_view);
         image_view_refs_t *refs = &view->base.refs;
         ui_mutation_observer_init_t options = { .properties = true };
         ui_mutation_observer_t *observer;
 
         view->reader = file_info_reader_create(image_view_on_load_file_info, w);
+        view->collector = image_collector_create();
         image_view_react_init(w);
         image_controller_init(&view->controller);
-        image_collector_listen(image_view_on_collector_event, w);
+        image_collector_listen(view->collector, image_view_on_collector_event, w);
         observer = ui_mutation_observer_create(image_view_on_mutation, w);
         ui_mutation_observer_observe(observer, refs->content, options);
         ui_widget_on(ui_root(), "keydown", image_view_on_keydown, w);
+        film_view_set_image_collector(refs->film_view, view->collector);
         slider_set_min(refs->slider, 10);
         slider_set_max(refs->slider, 800);
         image_view_update(w);
@@ -420,6 +430,7 @@ static void image_view_destroy(ui_widget_t *w)
 {
         image_view_t *view = image_view_get(w);
         image_view_react_destroy(w);
+        image_collector_destroy(view->collector);
         image_controller_destroy(&view->controller);
 }
 

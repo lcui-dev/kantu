@@ -1,7 +1,8 @@
 #include <ptk.h>
+#include <LCUI/app.h>
+#include <ui_widgets.h>
 #include "film-view.tsx.h"
 #include "film-view.h"
-#include "image-collector.h"
 
 typedef enum {
         FILM_VIEW_STATE_PENDING,
@@ -12,6 +13,7 @@ typedef enum {
 typedef struct {
         film_view_react_t base;
         film_view_state_t state;
+        image_collector_t *collector;
         size_t loaded_index;
         size_t index;
         int timer;
@@ -31,14 +33,19 @@ static void film_view_select(ui_widget_t *w)
         if (child) {
                 ui_widget_remove_class(child, "selected");
         }
-        view->index = image_collector_get_index();
+        view->index = image_collector_get_index(view->collector);
         child = ui_widget_get_child(view->base.refs.content, view->index);
         if (child) {
                 ui_widget_add_class(child, "selected");
+                if (!ui_widget_in_viewport(child)) {
+                        ui_scrollarea_set_scroll_left(
+                            w, child->border_box.x - w->padding_box.width / 2);
+                }
         }
 }
 
-static void film_view_on_collector_event(image_collector_event_type_t type,
+static void film_view_on_collector_event(image_collector_t *c,
+                                         image_collector_event_type_t type,
                                          void *arg)
 {
         film_view_t *view = film_view_get(arg);
@@ -66,6 +73,7 @@ static void film_view_on_click(ui_widget_t *w, ui_event_t *e, void *arg)
         for (; target; target = target->parent) {
                 if (ui_widget_has_class(target, "film-view-item")) {
                         image_collector_load_file(
+                            view->collector,
                             ui_widget_get_attr(target, "data-src"));
                         break;
                 }
@@ -74,13 +82,15 @@ static void film_view_on_click(ui_widget_t *w, ui_event_t *e, void *arg)
 
 static void film_view_init(ui_widget_t *w)
 {
-        film_view_t *view =
-            ui_widget_add_data(w, film_view_proto, sizeof(film_view_t));
+        film_view_t *view;
+        film_view_proto->proto->init(w);
+        view = ui_widget_add_data(w, film_view_proto, sizeof(film_view_t));
         view->state = FILM_VIEW_STATE_PENDING;
         view->index = 0;
         view->loaded_index = 0;
+        view->collector = NULL;
         film_view_react_init(w);
-        image_collector_listen(film_view_on_collector_event, w);
+        ui_scrollarea_set_wheel_scroll_direction(w, UI_SCROLLAREA_HORIZONTAL);
         ui_widget_on(w, "click", film_view_on_click, w);
         film_view_update(w);
 }
@@ -112,7 +122,7 @@ static void film_view_load_images(void *arg)
         list_node_t *node;
 
         list_create(&files);
-        image_collector_get_files(&files, view->loaded_index);
+        image_collector_get_files(view->collector, &files, view->loaded_index);
         for (list_each(node, &files)) {
                 film_view_append_image(view->base.refs.content, node->data);
         }
@@ -122,7 +132,7 @@ static void film_view_load_images(void *arg)
                 view->timer = 0;
                 view->state = FILM_VIEW_STATE_FINISHED;
         }
-        film_view_select(w);
+        lcui_post_task(w, (worker_task_cb)film_view_select, NULL);
         logger_debug("[film-view] loaded %d images, state=%d\n", files.length,
                      view->state);
         list_destroy(&files, free);
@@ -131,8 +141,6 @@ static void film_view_load_images(void *arg)
 void film_view_update(ui_widget_t *w)
 {
         film_view_react_update(w);
-        // Write code here to update other content of your component
-        // ...
 }
 
 ui_widget_t *ui_create_film_view(void)
@@ -144,9 +152,18 @@ void film_view_show(ui_widget_t *w)
 {
         film_view_t *view = film_view_get(w);
         ui_widget_remove_class(w, "hidden");
-        if (!view->timer && view->state != FILM_VIEW_STATE_FINISHED) {
+        if (view->collector && !view->timer &&
+            view->state != FILM_VIEW_STATE_FINISHED) {
                 view->timer = ptk_set_interval(500, film_view_load_images, w);
         }
+}
+
+void film_view_set_image_collector(ui_widget_t *w, image_collector_t *c)
+{
+        film_view_t *view = film_view_get(w);
+
+        view->collector = c;
+        image_collector_listen(c, film_view_on_collector_event, w);
 }
 
 void film_view_hide(ui_widget_t *w)

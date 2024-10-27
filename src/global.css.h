@@ -160,12 +160,48 @@ static const char *css_str_global = "\
 * {\
   box-sizing: border-box;\
 }\
+\
+scrollbar-thumb {\
+  top: 2px;\
+  left: 2px;\
+  height: 6px;\
+  width: 6px;\
+  min-width: 6px;\
+  min-height: 6px;\
+  background: #a1a1aa;\
+  border-radius: 3px;\
+}\
+\
+scrollbar-track {\
+  background: #404040;\
+  padding: 2px;\
+}\
+\
+scrollbar-corner {\
+  width: 10px;\
+  height: 10px;\
+}\
+\
+scrollbar.vertical {\
+  width: 10px;\
+}\
+\
+scrollbar.horizontal {\
+  height: 10px;\
+}\
+\
+.has-horizontal-scrollbar {\
+  padding-bottom: 10px;\
+}\
+\
 .hover\\:border-\\[3px\\]:hover {\
   border-width: 3px;\
 }\
+\
 .hover\\:text-sky-700:hover {\
   color: #0369a1;\
 }\
+\
 .hover\\:opacity-100:hover {\
   opacity: 1;\
 }\

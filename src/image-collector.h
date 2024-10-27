@@ -7,25 +7,36 @@ typedef enum {
         IMAGE_COLLECTOR_EVENT_FINISHED,
 } image_collector_event_type_t;
 
-void image_collector_init(void);
+typedef struct image_collector image_collector_t;
 
-void image_collector_destroy(void);
+void image_collector_notify(image_collector_t *c,
+                            image_collector_event_type_t type);
 
-void image_collector_load_file(const char *file);
+void image_collector_listen(image_collector_t *c,
+                            void (*callback)(image_collector_t *,
+                                             image_collector_event_type_t,
+                                             void *),
+                            void *data);
 
-bool image_collector_has_next(void);
+image_collector_t *image_collector_create(void);
 
-bool image_collector_has_prev(void);
+void image_collector_destroy(image_collector_t *c);
 
-const char *image_collector_get_file(void);
+void image_collector_load_file(image_collector_t *c, const char *file);
 
-void image_collector_next(void);
+size_t image_collector_get_index(image_collector_t *c);
 
-void image_collector_prev(void);
+void image_collector_get_files(image_collector_t *c, list_t *files,
+                               size_t index);
 
-size_t image_collector_get_index(void);
+bool image_collector_has_next(image_collector_t *c);
 
-void image_collector_get_files(list_t *files, size_t index);
+bool image_collector_has_prev(image_collector_t *c);
 
-void image_collector_listen(void (*callback)(image_collector_event_type_t, void *),
-                        void *data);
+const char *image_collector_get_file(image_collector_t *c);
+
+static void image_collector_goto(image_collector_t *c, size_t index);
+
+void image_collector_next(image_collector_t *c);
+
+void image_collector_prev(image_collector_t *c);
