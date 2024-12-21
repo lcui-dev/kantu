@@ -31,5 +31,3 @@ export default function Slider(props: WidgetProps) {
     </Widget>
   );
 }
-
-Slider.displayName = "slider";

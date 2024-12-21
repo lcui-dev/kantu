@@ -10,7 +10,6 @@
 
 static void lcui_app_init(void)
 {
-        setlocale(LC_CTYPE, "");
         lcui_init();
         ui_load_file_info_panel_resources();
         ui_load_film_view_resources();

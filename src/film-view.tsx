@@ -14,5 +14,3 @@ export default function FilmView(props: WidgetProps) {
     </ScrollArea>
   );
 }
-
-FilmView.displayName = "film_view";

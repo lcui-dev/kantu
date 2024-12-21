@@ -14,8 +14,8 @@
   "author": "liu <lc-soft@live.cn>",
   "license": "MIT",
   "dependencies": {
-    "@lcui/react": "^0.3.0",
-    "@lcui/react-icons": "^1.0.2"
+    "@lcui/react": "^0.4.0",
+    "@lcui/react-icons": "^1.0.3"
   },
   "devDependencies": {
     "@thedutchcoder/postcss-rem-to-px": "^0.0.2",

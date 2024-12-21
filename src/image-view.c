@@ -142,12 +142,14 @@ static void image_view_on_mousewheel(ui_widget_t *w, ui_event_t *e, void *arg)
         image_view_update(e->data);
 }
 
-static void image_view_on_prev_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_prev_mousedown(ui_widget_t *w, ui_event_t *e,
+                                         void *arg)
 {
         e->cancel_bubble = true;
 }
 
-static void image_view_on_next_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
+static void image_view_on_next_mousedown(ui_widget_t *w, ui_event_t *e,
+                                         void *arg)
 {
         e->cancel_bubble = true;
 }
@@ -209,8 +211,6 @@ void image_view_update(ui_widget_t *w)
         image_controller_t *c = &view->controller;
         file_info_t *info = file_info_reader_get_info(view->reader);
 
-        logger_debug("[image-view] image valid: %s\n",
-                     ui_image_valid(c->image) ? "true" : "false");
         if (ui_image_valid(c->image)) {
                 len = mbstowcs(title, path_basename(c->image->path), 64);
                 if (len > 60) {
@@ -230,22 +230,13 @@ void image_view_update(ui_widget_t *w)
                                            "background-size", size_str);
                 snprintf(percentage_str, 7, "%d%%",
                          (int)(view->controller.scale * 100));
-                logger_debug("[image-view] background size: %s\n", size_str);
-                logger_debug(
-                    "[image-view] background image: %s\n",
-                    view->base.refs.content->computed_style.background_image);
                 slider_set_value(view->base.refs.slider, c->scale * 100.0);
         } else {
                 slider_set_value(view->base.refs.slider, 100.0);
         }
 
-                ui_text_set_content(view->base.refs.file_size,
-                                    info->file_size);
-                ui_text_set_content(view->base.refs.image_size,
-                                    info->image_size);
-        
-        logger_debug("[image-view] image offset: %g %g\n",
-                     c->image_offset_x, c->image_offset_y);
+        ui_text_set_content(view->base.refs.file_size, info->file_size);
+        ui_text_set_content(view->base.refs.image_size, info->image_size);
         ui_widget_set_style_unit_value(view->base.refs.content,
                                        css_prop_background_position_x,
                                        c->image_offset_x, CSS_UNIT_PX);
@@ -305,7 +296,6 @@ static void image_view_on_image_event(ui_image_event_t *e)
 {
         image_view_t *view = image_view_get(e->data);
 
-        logger_debug("[image-view] on image event: %d\n", e->type);
         switch (e->type) {
         case UI_IMAGE_EVENT_PROGRESS:
                 ui_widget_set_style_unit_value(
@@ -316,7 +306,6 @@ static void image_view_on_image_event(ui_image_event_t *e)
                 image_view_reset(e->data);
                 break;
         case UI_IMAGE_EVENT_ERROR:
-                logger_error("load image error: %d", e->image->error);
                 image_view_update(e->data);
                 break;
         default:
@@ -383,7 +372,8 @@ static void image_view_on_load_file(ui_widget_t *w, const char *file)
         logger_debug("[image-view] %s\n", "load file");
 }
 
-void image_view_on_collector_event(image_collector_t *c, image_collector_event_type_t type, void *arg)
+void image_view_on_collector_event(image_collector_t *c,
+                                   image_collector_event_type_t type, void *arg)
 {
         if (type == IMAGE_COLLECTOR_EVENT_OPEN) {
                 image_view_on_load_file(arg, image_collector_get_file(c));
@@ -401,7 +391,8 @@ void image_view_load_file(ui_widget_t *w, const char *file)
 void image_view_on_slider_change(ui_widget_t *w, ui_event_t *e, void *arg)
 {
         image_view_t *view = image_view_get(e->data);
-        image_controller_set_scale(&view->controller, (float)(slider_get_value(w) / 100.0));
+        image_controller_set_scale(&view->controller,
+                                   (float)(slider_get_value(w) / 100.0));
         image_view_update(e->data);
 }
 
@@ -416,7 +407,8 @@ static void image_view_init(ui_widget_t *w)
         view->collector = image_collector_create();
         image_view_react_init(w);
         image_controller_init(&view->controller);
-        image_collector_listen(view->collector, image_view_on_collector_event, w);
+        image_collector_listen(view->collector, image_view_on_collector_event,
+                               w);
         observer = ui_mutation_observer_create(image_view_on_mutation, w);
         ui_mutation_observer_observe(observer, refs->content, options);
         ui_widget_on(ui_root(), "keydown", image_view_on_keydown, w);

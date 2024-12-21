@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
 #endif
 
         lcui_app_init();
+        setlocale(LC_ALL, "");
         // ui_widget_resize(ui_root(), 200, 800);
         // ptk_set_timeout(10000, on_timer, NULL);
 

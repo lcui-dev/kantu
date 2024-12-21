@@ -9,7 +9,6 @@ static const char *css_str_film_view = "\
   display: flex;\
   align-items: center;\
   justify-content: center;\
-  min-width: 100%;\
 }\
 \
 .film-view-item {\

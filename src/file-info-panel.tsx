@@ -60,5 +60,3 @@ export default function FileInfoPanel(props: WidgetProps) {
     </Widget>
   );
 }
-
-FileInfoPanel.displayName = "file_info_panel";

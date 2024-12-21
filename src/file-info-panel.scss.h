@@ -13,5 +13,6 @@ static const char *css_str_file_info_panel = "\
 }\
 .file-info-panel .field-value {\
   font-size: 14px;\
+  line-height: 20px;\
 }\
 ";
