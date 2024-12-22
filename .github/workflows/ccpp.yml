@@ -1,0 +1,46 @@
+name: C/C++ CI
+on: [push, pull_request]
+jobs:
+  build:
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['windows-latest']
+    runs-on: ${{ matrix.os }}
+    name: "Builds binaries on ${{ matrix.os }}"
+    steps:
+    - uses: actions/checkout@v1
+    - uses: xmake-io/github-action-setup-xmake@v1
+    - name: Update submodules
+      run: |
+        git submodule sync --recursive
+        git submodule update --init --recursive
+    - name: Install packages
+      run: |
+        npm install
+        npm install -g @lcui/cli
+    - name: Restore xmake packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.xmake/.cache/packages
+        key: ${{ runner.os }}-xmake-packages
+    - name: Configure
+      run: xmake config -y
+    - name: Cache xmake packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.xmake/.cache/packages
+        key: ${{ runner.os }}-xmake-packages
+    - name: Build
+      run: lcui build
+    - name: Package
+      run: |
+        xmake install -o artifact/build kantu
+        mkdir artifact/package
+        cp -r dist artifact/package/kantu
+        cp artifact/build/bin/* artifact/package/kantu
+    - uses: actions/upload-artifact@master
+      with:
+        name: package (${{ runner.os }})
+        path: artifact/package
