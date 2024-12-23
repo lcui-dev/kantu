@@ -11,8 +11,11 @@
 int main(int argc, char *argv[])
 {
 #ifndef DEBUG
-        char *dirname = path_dirname(argv[0]);
+        char *bin_path = malloc(sizeof(char) * (strlen(argv[0]) + 1));
+        strtrim(bin_path, argv[0], "\"");
+        char *dirname = path_dirname(bin_path);
         chdir(dirname);
+        free(bin_path);
         free(dirname);
 #endif
 
