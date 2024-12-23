@@ -81,3 +81,10 @@ int format_size(char buf[16], size_t size)
         }
         return snprintf(buf, 16, "%zu %s", size, units[i]);
 }
+
+char *path_from(const char *str)
+{
+        char *path = malloc(sizeof(char) * (strlen(str) + 1));
+        strtrim(path, str, "\"");
+        return path;
+}
