@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include <ui_widgets.h>
-#include <ui_server.h>
-#include <LCUI/app.h>
+#include <LCUI/ui.h>
+#include <LCUI/widgets.h>
+#include <ptk.h>
 #include "utils.h"
 #include "image-view.tsx.h"
 #include "image-view.h"
@@ -187,13 +187,13 @@ void image_view_open_file_info_panel(ui_widget_t *w, ui_event_t *e, void *arg)
 void image_view_maximize(ui_widget_t *w)
 {
         ui_widget_add_class(w, "maximized");
-        lcui_set_ui_display_mode(LCUI_DISPLAY_MODE_FULLSCREEN);
+        lcui_ui_set_display(LCUI_DISPLAY_FULLSCREEN);
 }
 
 void image_view_restore(ui_widget_t *w)
 {
         ui_widget_remove_class(w, "maximized");
-        lcui_set_ui_display_mode(LCUI_DISPLAY_MODE_DEFAULT);
+        lcui_ui_set_display(LCUI_DISPLAY_DEFAULT);
 }
 
 void image_view_on_maximize(ui_widget_t *w, ui_event_t *e, void *arg)

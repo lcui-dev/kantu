@@ -29,4 +29,3 @@ static int lcui_app_run(void)
 {
         return lcui_run();
 }
-

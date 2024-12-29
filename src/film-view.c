@@ -1,6 +1,5 @@
 #include <ptk.h>
-#include <LCUI/app.h>
-#include <ui_widgets.h>
+#include <LCUI.h>
 #include "film-view.tsx.h"
 #include "film-view.h"
 

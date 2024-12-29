@@ -1,6 +1,6 @@
 ﻿#include <stdio.h>
 #include <string.h>
-#include <ui_widgets.h>
+#include <LCUI/widgets.h>
 #include "file-info-panel.tsx.h"
 #include "file-info-panel.h"
 #include "utils.h"
