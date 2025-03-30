@@ -2,6 +2,8 @@
 
 KanTu, a lightweight image viewer.
 
+> Do you want to know the development process of this program? View this course: https://leanpub.com/c/lcui-image-viewer
+
 [中文](README.zh-cn.md)/**English**
 
 ![preview](./preview.jpg)

@@ -2,6 +2,8 @@
 
 看图（KanTu），一个轻量级的图片查看器。
 
+> 想了解此程序的开发过程？查看此实战课程：https://leanpub.com/c/lcui-image-viewer
+
 **中文**/[English](./README.md)
 
 ![preview](./preview.jpg)
