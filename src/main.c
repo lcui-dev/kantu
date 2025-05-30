@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <locale.h>
+#include <stdio.h>
 #include "main.h"
 #include "utils.h"
 
