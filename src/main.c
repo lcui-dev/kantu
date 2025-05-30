@@ -1,4 +1,6 @@
-﻿#include "main.h"
+﻿#include <errno.h>
+#include <stdio.h>
+#include "main.h"
 #include "utils.h"
 
 #ifdef _WIN32
