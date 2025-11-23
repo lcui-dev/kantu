@@ -74,7 +74,7 @@ export default function ImageView() {
             className="icon button mr-1"
             onClick="image_view_open_file_info_panel"
           />
-          <Widget className="file-info mr-auto opacity-50 flex border-l border-l-white h-4 items-center pl-3">
+          <Widget className="file-info flex-none mr-auto opacity-50 flex border-l border-l-white h-4 items-center pl-3">
             <ResizeImage className="mr-2 text-lg" fontSize={14} />
             <Text $ref="image_size" className="mr-4" />
             <Save className="m-2" fontSize={14} />
@@ -96,7 +96,11 @@ export default function ImageView() {
             className="icon button"
             onClick="image_view_on_zoom_out"
           />
-          <Slider $ref="slider" className="w-[200px]" onChange="image_view_on_slider_change" />
+          <Slider
+            $ref="slider"
+            className="w-[200px]"
+            onChange="image_view_on_slider_change"
+          />
           <ZoomIn
             $ref="zoom_in"
             className="icon button"

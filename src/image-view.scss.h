@@ -3,8 +3,14 @@ static const char *css_str_image_view = "\
 .image-view text {\
   color: #fff;\
 }\
-.image-view .percentage {\
-  padding: 0 8px;\
+.image-view .content {\
+  display: flex;\
+  flex: auto;\
+  align-items: center;\
+  justify-content: center;\
+}\
+.image-view text {\
+  color: #fff;\
   white-space: nowrap;\
 }\
 .image-view .button {\

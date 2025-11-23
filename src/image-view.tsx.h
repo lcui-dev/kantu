@@ -141,7 +141,7 @@ static void image_view_load_template(ui_widget_t *parent, image_view_refs_t *ref
         ui_widget_add_class(refs->ref_22, "fui-icon-regular icon button mr-1");
         ui_widget_set_text(refs->ref_22, (const char*)widget_text_6);
         w[5] = ui_create_widget(NULL);
-        ui_widget_add_class(w[5], "file-info mr-auto opacity-50 flex border-l border-l-white h-4 items-center pl-3");
+        ui_widget_add_class(w[5], "file-info flex-none mr-auto opacity-50 flex border-l border-l-white h-4 items-center pl-3");
         refs->ref_24 = ui_create_widget("text");
         ui_widget_add_class(refs->ref_24, "fui-icon-regular mr-2 text-lg");
         ui_widget_set_text(refs->ref_24, (const char*)widget_text_7);
