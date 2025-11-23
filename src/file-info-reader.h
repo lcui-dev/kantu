@@ -19,3 +19,5 @@ file_info_reader_t *file_info_reader_create(void (*callback)(file_info_t *, void
 void file_info_reader_destroy(file_info_reader_t *reader);
 
 void file_info_reader_load_file(file_info_reader_t *reader, const char *path);
+
+file_info_t *file_info_reader_get_info(file_info_reader_t *reader);

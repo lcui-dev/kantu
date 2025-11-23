@@ -47,16 +47,17 @@ void file_info_panel_set_info(ui_widget_t *w, file_info_t *info)
         char text[TEXT_MAX_LEN];
         wchar_t wtext[TEXT_MAX_LEN];
         file_info_panel_t *panel = file_info_panel_get(w);
+        file_info_panel_refs_t *refs = &panel->base.refs;
 
         // Name
         file_info_panel_react_update(w);
         mbstowcs(wtext, info->name, TEXT_MAX_LEN);
-        ui_text_set_content_w(panel->base.refs.name, wtext);
+        ui_text_set_content_w(refs->name, wtext);
 
         // Size
         sprintf(text, u8"%u x %u   %s   %u 位", info->width, info->height,
                 info->file_size, info->bits);
-        ui_text_set_content(panel->base.refs.size, text);
+        ui_text_set_content(refs->size, text);
 
         // Path
         len = mbstowcs(wtext, info->path, TEXT_MAX_LEN);
@@ -66,8 +67,8 @@ void file_info_panel_set_info(ui_widget_t *w, file_info_t *info)
         uri = malloc((strlen(info->path) + 16) * sizeof(char));
         dir = path_dirname(info->path);
         sprintf(uri, "file:///%s", dir);
-        ui_widget_set_attr(panel->base.refs.path, "href", uri);
-        ui_text_set_content_w(panel->base.refs.path, wtext);
+        ui_widget_set_attr(refs->path, "href", uri);
+        ui_text_set_content_w(refs->path, wtext);
         free(uri);
         free(dir);
 
@@ -77,7 +78,7 @@ void file_info_panel_set_info(ui_widget_t *w, file_info_t *info)
                 wcsftime(wtext, TEXT_MAX_LEN, L"%Y 年 %m 月 %d 日 %H:%M:%S",
                          localtime(&info->mtime));
         }
-        ui_text_set_content_w(panel->base.refs.datetime, wtext);
+        ui_text_set_content_w(refs->datetime, wtext);
 }
 
 void ui_register_file_info_panel(void)

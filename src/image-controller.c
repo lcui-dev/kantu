@@ -10,8 +10,8 @@ void image_controller_init(image_controller_t *c)
         c->image = NULL;
         c->image_offset_x = 0;
         c->image_offset_y = 0;
-        c->viewport_center_x = 0;
-        c->viewport_center_y = 0;
+        c->focus_x = 0;
+        c->focus_y = 0;
         c->viewport_width = 0;
         c->viewport_height = 0;
 }
@@ -47,9 +47,9 @@ void image_controller_set_position(image_controller_t *c, float image_offset_x,
         }
         c->image_offset_x = image_offset_x;
         c->image_offset_y = image_offset_y;
-        c->viewport_center_x =
+        c->focus_x =
             (-c->image_offset_x + c->viewport_width / 2.f) / c->scale;
-        c->viewport_center_y =
+        c->focus_y =
             (-c->image_offset_y + c->viewport_height / 2.f) / c->scale;
 }
 
@@ -79,8 +79,8 @@ void image_controller_set_scale(image_controller_t *c, float scale)
         }
         c->scale = scale;
         image_controller_set_position(
-            c, -(c->viewport_center_x * c->scale - c->viewport_width / 2.f),
-            -(c->viewport_center_y * c->scale - c->viewport_height / 2.f));
+            c, -(c->focus_x * c->scale - c->viewport_width / 2.f),
+            -(c->focus_y * c->scale - c->viewport_height / 2.f));
 }
 
 void image_controller_zoom_in(image_controller_t *c)

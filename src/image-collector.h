@@ -1,5 +1,4 @@
 #include <yutil.h>
-#include <thread.h>
 
 typedef enum {
         IMAGE_COLLECTOR_EVENT_OPEN,
@@ -34,8 +33,6 @@ bool image_collector_has_next(image_collector_t *c);
 bool image_collector_has_prev(image_collector_t *c);
 
 const char *image_collector_get_file(image_collector_t *c);
-
-static void image_collector_goto(image_collector_t *c, size_t index);
 
 void image_collector_next(image_collector_t *c);
 

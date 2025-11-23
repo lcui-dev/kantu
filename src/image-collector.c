@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <thread.h>
 #include "image-collector.h"
 #include "utils.h"
 
@@ -12,7 +13,8 @@ typedef enum {
 } image_collector_state_t;
 
 typedef struct {
-        void (*callback)(image_collector_t*, image_collector_event_type_t, void *);
+        void (*callback)(image_collector_t *, image_collector_event_type_t,
+                         void *);
         void *data;
 } listener_t;
 

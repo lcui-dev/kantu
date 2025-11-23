@@ -8,18 +8,22 @@
 #include <unistd.h>
 #endif
 
-int main(int argc, char *argv[])
+void setcwd(const char *path)
 {
 #ifndef DEBUG
-        char *bin_path = path_from(argv[0]);
-        char *dirname = path_dirname(bin_path);
+        char *binpath = path_from(path);
+        char *dirname = path_dirname(binpath);
         chdir(dirname);
-        free(bin_path);
+        free(binpath);
         free(dirname);
 #endif
+}
 
+int main(int argc, char *argv[])
+{
+        setcwd(argv[0]);
         setlocale(LC_ALL, "");
-        lcui_app_init();
+        app_init();
         if (argc > 1) {
                 ui_widget_t *view = ui_create_image_view();
                 char *file_path = path_from(argv[1]);
@@ -30,5 +34,5 @@ int main(int argc, char *argv[])
                 ui_widget_append(ui_root(), ui_create_home());
                 ui_widget_set_title(ui_root(), L"kantu");
         }
-        return lcui_app_run();
+        return app_run();
 }

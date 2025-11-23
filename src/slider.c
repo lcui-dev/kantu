@@ -9,7 +9,7 @@ typedef struct {
         bool dragging;
 } slider_t;
 
-static slider_t *file_info_panel_get(ui_widget_t *w)
+static slider_t *slider_get(ui_widget_t *w)
 {
         return ui_widget_get_data(w, slider_proto);
 }
@@ -31,7 +31,7 @@ static void slider_destroy(ui_widget_t *w)
 
 void slider_update(ui_widget_t *w)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
         double value =
             (slider->value - slider->min) / (slider->max - slider->min);
 
@@ -44,21 +44,21 @@ void slider_update(ui_widget_t *w)
 
 void slider_set_min(ui_widget_t *w, double min)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
         slider->min = min;
         slider_set_value(w, slider->value);
 }
 
 void slider_set_max(ui_widget_t *w, double max)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
         slider->max = max;
         slider_set_value(w, slider->value);
 }
 
 void slider_set_value(ui_widget_t *w, double value)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
 
         if (value < slider->min) {
                 value = slider->min;
@@ -72,13 +72,13 @@ void slider_set_value(ui_widget_t *w, double value)
 
 double slider_get_value(ui_widget_t *w)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
         return slider->value;
 }
 
 void slider_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
         ui_event_t change_event;
         float offset_x, offset_y;
 
@@ -97,7 +97,7 @@ void slider_on_mousemove(ui_widget_t *w, ui_event_t *e, void *arg)
 
 void slider_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
 
         slider->dragging = true;
         ui_widget_set_mouse_capture(w);
@@ -106,7 +106,7 @@ void slider_on_mousedown(ui_widget_t *w, ui_event_t *e, void *arg)
 
 void slider_on_mouseup(ui_widget_t *w, ui_event_t *e, void *arg)
 {
-        slider_t *slider = file_info_panel_get(w);
+        slider_t *slider = slider_get(w);
 
         slider->dragging = false;
         ui_widget_release_mouse_capture(w);

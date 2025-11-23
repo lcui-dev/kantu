@@ -166,7 +166,7 @@ static void image_view_on_prev(ui_widget_t *w, ui_event_t *e, void *arg)
         image_collector_prev(view->collector);
 }
 
-static void image_view_on_load_file_info(file_info_t *info, void *arg)
+static void image_view_load_file_info(file_info_t *info, void *arg)
 {
         image_view_update(arg);
 }
@@ -403,7 +403,7 @@ static void image_view_init(ui_widget_t *w)
         ui_mutation_observer_init_t options = { .properties = true };
         ui_mutation_observer_t *observer;
 
-        view->reader = file_info_reader_create(image_view_on_load_file_info, w);
+        view->reader = file_info_reader_create(image_view_load_file_info, w);
         view->collector = image_collector_create();
         image_view_react_init(w);
         image_controller_init(&view->controller);

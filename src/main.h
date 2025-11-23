@@ -8,7 +8,7 @@
 #include "slider.h"
 #include "toggle-button.h"
 
-static void lcui_app_init(void)
+static void app_init(void)
 {
         lcui_init();
         ui_load_file_info_panel_resources();
@@ -25,7 +25,7 @@ static void lcui_app_init(void)
         ui_register_toggle_button();
 }
 
-static int lcui_app_run(void)
+static int app_run(void)
 {
         return lcui_run();
 }
